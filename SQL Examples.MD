@@ -92,6 +92,15 @@ INSERT INTO table_name (column1, column2, column3, ...)
 VALUES (value1, value2, value3, ...);
 ```
 2) Where the columns are not named (values for each column are provided):
+```sql
+INSERT INTO table_name
+VALUES (value1, value2, value3, ...);
+```
+In either case, additional rows can be added by adding another parenthesize line. At least in MySQL, must use 1 because autoinc primary key
+
+Data added into the fiddle stored here:
+```sql
+
 ```
 
 ## Basic Data Selection
