@@ -343,7 +343,7 @@ SELECT * FROM Checkouts
 ORDER BY DueDate DESC, CheckoutTime ASC;
 ```
 
-### Limiting Number of Results <a name="limiting_results></a>
+### Limiting Number of Results <a name="limiting_results"></a>
 	
 For a large table, you might be interested in limiting the number of results shown. This is handled differently in other dialects (such as the use of `TOP` in SQL Server and `ROWNUM` in Oracle), and other dialects may allow for percentages whereas MySQL does not (at least not simply). Nonetheless, a simple count limitation on the number of records returned in MySQL uses `LIMIT` as seen below:
 
@@ -435,8 +435,48 @@ SELECT * FROM Customers
 WHERE City IS NOT NULL;
 ```
 
+### Basic Functions <a name="basic_functions"></a>
+
+SQL dialects generally support a number of basic functions like `MIN`, `MAX`, `AVG`, and others that can be applied to columns within a `SELECT` clause. While not necessary, these can be given an "alias" using `AS`, which may be helpful for later references or for providing a more interpretable read in the query results.
+
+The query below provides a set of metrics on our `Checkouts` table using a number of these functions as examples. As this query structure is somewhat more complicated, we begin using indents to clarify its structure:
+
+```sql
+SELECT
+	MIN(CheckoutTime) AS Earliest_Checkout,
+	MAX(DueDate) AS Farthest_Due_Date,
+	AVG(Returned) AS Average_Return_Rate,
+	SUM(Returned) AS Total_Returned_Checkouts,
+	COUNT(DISTINCT CheckoutID) AS Total_Checkouts
+FROM Checkouts;
+```
+
+Many other functions exist that can be utilized in use cases beyond this. This W3schools link provides a [general function list](https://www.w3schools.com/sql/sql_ref_mysql.asp).
+
 ### Changing Data <a name="changing_data"></a>
 
+We have already seen how to **insert data** above when building our schema like below:
+
+```sql
+INSERT INTO table_name (column1, column2, column3, ...)
+VALUES (value1, value2, value3, ...);
+```
+
+But we can also **update** existing data as so:
+
+```sql
+UPDATE table_name
+SET column1 = value1, column2 = value2, ...
+WHERE condition;
+```
+It's important to note the `WHERE` condition in the above. This determines which values get changed, so one must be used you're selecting exactly what you want before updating. Note that not all the column values must be provided in `SET`, only the ones you want to update.
+
+We can also **delete** existing data as such:
+
+```sql
+DELETE FROM table_name WHERE condition;
+```
+Just like in the update case, one should be very careful the `WHERE` clause resolves as intended.
 
 
 ### Catching Duplicates <a name="duplicates"></a>
