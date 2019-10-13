@@ -31,7 +31,7 @@ Some notes on the above table creation:
   * Setting this = some number means it will start at that number in incrementing.
   * Other dialects use different language here, for instance `IDENTITY()` is used in SQL server.
 * We could also name a primary key from multiple columns (assuming they are unique and not null). This would look like:
-```sql CONSTRAINT PK_Customer PRIMARY KEY (CustomerID, LastName) ``` ...where `PK_CUstomer` is the name of the created composite key.
+`CONSTRAINT PK_Customer PRIMARY KEY (CustomerID, LastName)` where `PK_CUstomer` is the name of the created composite key.
 * We also want `CustomerID` to be unique values. There is a `UNIQUE` constraint that can be applied just liked `NOT NULL`, but this automatically added to the field when we make it a primary key.
 
 ### Data Types
@@ -217,8 +217,8 @@ CREATE TABLE Customers (
 
 ALTER TABLE Customers
 	ADD Address VARCHAR(255),
-    DROP COLUMN Email,
-    MODIFY COLUMN IsCurrent BOOL;
+	DROP COLUMN Email,
+	MODIFY COLUMN IsCurrent BOOL;
 
 CREATE TABLE Books (
   BookID INT NOT NULL AUTO_INCREMENT,
@@ -245,7 +245,7 @@ CREATE INDEX Idx_LastName
 
 INSERT INTO Customers (LastName, FirstName, City, State, IsCurrent, Address)
 VALUES ("Smith", "John", "Smallville", "AL", 0, "150 Street"),
-		("Smith", "Elane", "Jordantown", "OR", 0, "23rd street"),
+	("Smith", "Elane", "Jordantown", "OR", 0, "23rd street"),
         ("Crook", "John", "Albertville", "OR", 0, "15th avenue"),
         ("Smith", "Leslie", "Smallville", "AL", 1, "24 Cross Creek Rd"),
         ("Russell", "Ben", "Newcut", "NM", 1, "11 Street"),
@@ -256,7 +256,7 @@ VALUES ("Smith", "John", "Smallville", "AL", 0, "150 Street"),
         
 INSERT INTO Books (Name, Type)
 VALUES ("How to bake chez", "nonfiction"),
-		("How to tame a wilderbeast", "fiction"),
+	("How to tame a wilderbeast", "fiction"),
         ("Where the wombats go", "fiction"),
         ("Scary things scarring scary things", "fiction"),
         ("The tale of Bob", "nonfiction"),
@@ -266,7 +266,7 @@ VALUES ("How to bake chez", "nonfiction"),
         
 INSERT INTO Checkouts (BookID, CustomerID, CheckoutTime, DueDate, Returned)
 VALUES (1, 3, '2008-11-01 12:00:00', '2008-12-01', 1),
-		(4, 1, '2008-01-13 12:00:00', '2008-02-13', 0),
+	(4, 1, '2008-01-13 12:00:00', '2008-02-13', 0),
         (5, 2, '2008-12-13 12:00:00', '2009-01-13', 1),
         (2, 4, '2009-08-09 12:00:00', '2009-09-09', 1),
         (8, 4, '2009-07-25 12:00:00', '2009-08-25', 1),
