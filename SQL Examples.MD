@@ -456,7 +456,7 @@ Many other functions exist that can be utilized in use cases beyond this. This W
 
 ### Aliases <a name="aliases"></a>
 
-Temporary names, or "aliases," can be given to columns or entire tables. This may be helpful in changing the way the results of a query are presented (i.e. to make them more human-readable) or for later referential use. In either case, we use the `AS` commands.
+Temporary names, or "aliases," can be given to columns or entire tables. This may be helpful in changing the way the results of a query are presented (i.e. to make them more human-readable) or for later referential use. In either case, we use the `AS` command.
 
 Basic column aliases have already been addressed when discussing functions, but showing an example with spaces:
 ```sql
