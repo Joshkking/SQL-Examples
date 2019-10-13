@@ -1,9 +1,10 @@
 # SQL Examples
 
-The following are some basic SQL Examples and notes taken during my Masters working in the MySQL dialect. Since, to me, much of the meaning of any give SQL syntax can be interpretted from the code itself, I'm not attempting to explain as much as provide self-interpretable examples, giving notes when necessary.
+The following are some basic SQL Examples and notes taken during my Masters working in the MySQL dialect. Since, to me, much of the meaning of any give SQL syntax can be interpretted from the code itself, I'm not attempting to explain as much as provide self-interpretable examples, giving notes when necessary. I also don't intend to hit every function on its own but rather eventually cover most important examples along the way. lso this generally assume basic knowledge of terms and more serves as a set of syntax examples.
 
 To practice the queries, I have been working with a db-fiddle page:
 https://www.db-fiddle.com/f/7wyqDZguJojJBUNp3kWbEt/2
+
 This page has all of the below database creation schema already included, so one can copy and paste the queries there to run. The examples provided below are from the context of this schema representing customers checking out different books. The data inserted is random, and the tables are not meant to be great examples. I simply added what I needed to learn the lanugage.
 
 ## Basic Table Schema
@@ -24,6 +25,7 @@ CREATE TABLE Customers (
   PRIMARY KEY (CustomerID)
 );
 ```
+
 Some notes on the above table creation:
 * `AUTO_INCREMENT` does as expected - adding a new auto-incremented value for us at each new record insertion. This means we do not have to set the value ourselves.
   * Setting this = some number means it will start at that number in incrementing.
@@ -59,61 +61,85 @@ There are a number of different data types that can be used when setting up fiel
 ### Altering Tables
 
 We can then alter an existing table like so:
+
 ```sql
 ALTER TABLE Customers
-  ADD DateOfBirth DATE,
-  DROP COLUMN Email,
-  MODIFY COLUMN IsCurrent BOOL;
+ADD Address VARCHAR(255),
+DROP COLUMN Email,
+MODIFY COLUMN IsCurrent BOOL;
 ```
+
+Note in this case there is no parenthesize. Where we used `MODIFY COLUMN` here, it was done to change the datatype of the `IsCurrent` field to boolean. You can also use `ALTER TABLE` to add or drop various constraints on fields.
+
+### Check Constraint Example
+
+You can also create table fields that only allow for values that pass a logical check. We see this in making our `Books` table below.
 
 ```sql
 CREATE TABLE Books (
-  BookID INT NOT NULL,
+  BookID INT NOT NULL AUTO_INCREMENT,
+  Name VARCHAR(255) NOT NULL,
   Type VARCHAR(10),
   PRIMARY KEY (BookID),
   CHECK (Type="fiction" OR Type="nonfiction")
 ); 
 ```
-Constraings like `CHECK` can be given names in the same way way as the constraint in the primary key example above
 
-Now create some checkouts
+In other dialects, the `CHECK` constraint might be listed right after the variable. This effectively only allows books to be entered as type "fiction" or "nonfiction". It could, however, be handled via an `ENUM` datatype. One extra advantage of `CHECK` is that you can also add in extra columns into the logical check if needed.
+
+### Foreign Keys and Default Values
+
+We'll also create a table for different book checkouts. Given the relation algebra of this table, it will require multiple foreign keys.
 
 ```sql
 CREATE TABLE Checkouts (
-  CheckoutID INT NOT NULL,
+  CheckoutID INT NOT NULL AUTO_INCREMENT,
   BookID INT NOT NULL,
   CustomerID INT NOT NULL,
   CheckoutTime DATETIME DEFAULT NOW(), # Default value is current time
   DueDate DATE,
+  Returned BOOL DEFAULT 0,
   PRIMARY KEY (CheckoutID),
   FOREIGN KEY (CustomerID) REFERENCES Customers(CustomerID),
   FOREIGN KEY (BookID) REFERENCES Books(BookID)
 );
 ```
-To name foreign keys or to add ones with multiple columns you can use the same technique for Primary key
+
+A few notes on the table above:
+* Note that functions can be used within table constraints like `DEFAULT` above.
+* To change the default value of a column, add use `SET DEFAULT` in `ALTER TABLE`. Defaults can also be dropped.
+* We'll see how to make a composite key below.
+
+### Naming Constraints or Keys w/ Mult Columns
+
+To name keys or constraints, and/or to add ones with multiple columns, you can use the following syntax (example below of a composite foreign key):
+
 ```sql
-CONTSTRAINT FK_CustomerCheckout FOREIGN KEY (CustomerID, other columns...)
-REFERENCES Customers(CustomerID, othercolums...)
+CONTSTRAINT FK_CustomerCheckout FOREIGN KEY (CustomerID, other columns...) REFERENCES Customers(CustomerID, othercolums...)
 ```
-To change the default value of a column, add use `SET DEFAULT` in `ALTER TABLE`. Note that in the table above we can set a default to a function. Defaults can be dropped.
 
+`REFERENCES` is a pointer to the columns the listed foreign keys should associate with in another table. Of course in the case of other constraints we would use their appropriate commands rather than `FORIEGN KEY` or `REFERENCES`. For instance, a named `CHECK` constraint on multiple columns might look like. Assumed we have an `AquiredDate` for our books and occasionally check their status as `LastStatusCheck`:
 
-Some other useful table commands
 ```sql
-DROP TABLE table_name # deletes the table
-TRUNCATE TABLE table_name # deletes the data in the table
+CONSTRAINT Check_StatusDate CHECK (LastStatusCheck > AquiredDate)
 ```
 
-Indexes can also be used to increase lookup peformance (in the case of a regular index) or to help enforce unique values on columns (in the case of a unique inded).
+This would ensure we could not add in status check dates that happened before the date we got the book.
+
+### Creating Indexes
+
+Indexes can also be used to increase lookup peformance (in the case of a regular index) or to help enforce unique values on columns (in the case of a unique index).
+
 ```sql
 CREATE INDEX Idx_LastName
 ON Customers (LastName);
 ```
+
 Multiple columns could have been added to the above, and it could have been converted to a unique index as `UNIQUE INDEX`. Indexes can be dropped.
 
 ### Inserting Values
 
-Can be done as:
+Inserting values follows two general syntaxes:
 
 1) Where the columns are explicitly named:
 ```sql
@@ -125,14 +151,55 @@ VALUES (value1, value2, value3, ...);
 INSERT INTO table_name
 VALUES (value1, value2, value3, ...);
 ```
-In either case, additional rows can be added by adding another parenthesize line. At least in MySQL, must use 1 because autoinc primary key
+Additional rows can be added by adding another parenthesize line.
 
-Data added into the fiddle stored here:
+The second case is often not used with tables having an `AUTO INCREMENT` column as we typically let the database handle that for us. As such, to use the second case we would need to be providing the values for that column directly since this method assumes we provide values for all columns.
+
+For the data actually added to our fiddle schema, see the "Schema for Fiddle" section below.
+
+### Other Noteworthy Table/Database Commands
+
+Some other useful table commands:
+
 ```sql
-
+DROP TABLE table_name # deletes the table
+TRUNCATE TABLE table_name # deletes the data in the table
+SHOW TABLES # Shows all tables within the database
+DESCRIBE table_name # shows information on all columns of a table
 ```
 
-## Schema for the Fiddle
+And some useful database commands:
+
+```sql
+# Creating a database looks like
+CREATE DATABASE databasename;
+
+# Show the databases on the server
+SHOW DATABASES;
+
+# Change to a different database
+USE databasename;
+
+# To backup a database
+BACKUP DATABASE databasename
+TO DISK = 'filepath';
+```
+
+From the [MySQL docs](https://dev.mysql.com/doc/refman/5.7/en/grant.html#grant-overview), the syntax for creating a user and granting privileges:
+
+```sql
+CREATE USER 'jeffrey'@'localhost' IDENTIFIED BY 'password';
+GRANT ALL ON db1.* TO 'jeffrey'@'localhost';
+GRANT SELECT ON db2.invoice TO 'jeffrey'@'localhost';
+ALTER USER 'jeffrey'@'localhost' WITH MAX_QUERIES_PER_HOUR 90;
+```
+Some notes on the above:
+* `%` Could be used instead of `localhost` to identify all valid hosts.
+* The location of permission syntax is `database_name.table_name` so `db1.*` refers to all tables within `db1`.
+* MySQL doesn't support wildcard for user names, so to grant to all users, leave the username section blank.
+* Can add multiple privileges via commas, like `GRANT SELECT, INSERT ON ...`.
+
+## Schema for Fiddle
 
 The full database schema used in the fiddle, presrved here, can be found below:
 
@@ -223,3 +290,7 @@ VALUES (1, 3, '2008-11-01 12:00:00', '2008-12-01', 1),
 ```
 
 ## Basic Data Selection
+
+### General Select Syntax
+
+...
