@@ -7,9 +7,9 @@ https://www.db-fiddle.com/f/7wyqDZguJojJBUNp3kWbEt/2
 
 This page has all of the below database creation schema already included, so one can copy and paste the queries there to run. The examples provided below are from the context of this schema representing customers checking out different books. The data inserted is random, and the tables are not meant to be great examples. I simply added what I needed to learn the lanugage.
 
-## Basic Table Schema
+## Basic Table Schema <a name="table_schema"></a>
 
-### Table Creation
+### Table Creation <a name="table_creation"></a>
 
 Creating a table looks like:
 
@@ -34,7 +34,7 @@ Some notes on the above table creation:
 `CONSTRAINT PK_Customer PRIMARY KEY (CustomerID, LastName)` where `PK_CUstomer` is the name of the created composite key.
 * We also want `CustomerID` to be unique values. There is a `UNIQUE` constraint that can be applied just liked `NOT NULL`, but this automatically added to the field when we make it a primary key.
 
-### Data Types
+### Data Types <a name="data_types"></a>
 
 There are a number of different data types that can be used when setting up fields, and they may differ in different SQL dialects. A handy list can be found on this [W3Schools link](https://www.w3schools.com/sql/sql_datatypes.asp). A few examples below:
 
@@ -58,7 +58,7 @@ There are a number of different data types that can be used when setting up fiel
   * TIME - Format hh:mm:ss
   * YEAR - Format YYYY
 
-### Altering Tables
+### Altering Tables <a name="altering_tables"></a>
 
 We can then alter an existing table like so:
 
@@ -71,7 +71,7 @@ MODIFY COLUMN IsCurrent BOOL;
 
 Note in this case there is no parenthesize. Where we used `MODIFY COLUMN` here, it was done to change the datatype of the `IsCurrent` field to boolean. You can also use `ALTER TABLE` to add or drop various constraints on fields.
 
-### Check Constraint Example
+### Check Constraint Example <a name="CHECK_constraint"></a>
 
 You can also create table fields that only allow for values that pass a logical check. We see this in making our `Books` table below.
 
@@ -87,7 +87,7 @@ CREATE TABLE Books (
 
 In other dialects, the `CHECK` constraint might be listed right after the variable. This effectively only allows books to be entered as type "fiction" or "nonfiction". It could, however, be handled via an `ENUM` datatype. One extra advantage of `CHECK` is that you can also add in extra columns into the logical check if needed.
 
-### Foreign Keys and Default Values
+### Foreign Keys and Default Values <a name="foreign_keys"></a>
 
 We'll also create a table for different book checkouts. Given the relation algebra of this table, it will require multiple foreign keys.
 
@@ -110,7 +110,7 @@ A few notes on the table above:
 * To change the default value of a column, add use `SET DEFAULT` in `ALTER TABLE`. Defaults can also be dropped.
 * We'll see how to make a composite key below.
 
-### Naming Constraints or Keys w/ Mult Columns
+### Naming Constraints or Keys w/ Mult Columns <a name="naming_constraints"></a>
 
 To name keys or constraints, and/or to add ones with multiple columns, you can use the following syntax (example below of a composite foreign key):
 
@@ -126,7 +126,7 @@ CONSTRAINT Check_StatusDate CHECK (LastStatusCheck > AquiredDate)
 
 This would ensure we could not add in status check dates that happened before the date we got the book.
 
-### Creating Indexes
+### Creating Indexes <a name="creating_indexes"></a>
 
 Indexes can also be used to increase lookup peformance (in the case of a regular index) or to help enforce unique values on columns (in the case of a unique index).
 
@@ -137,7 +137,7 @@ ON Customers (LastName);
 
 Multiple columns could have been added to the above, and it could have been converted to a unique index as `UNIQUE INDEX`. Indexes can be dropped.
 
-### Inserting Values
+### Inserting Values <a name="inserting_values"></a>
 
 Inserting values follows two general syntaxes:
 
@@ -157,7 +157,7 @@ The second case is often not used with tables having an `AUTO INCREMENT` column 
 
 For the data actually added to our fiddle schema, see the "Schema for Fiddle" section below.
 
-### Other Noteworthy Table/Database Commands
+### Other Noteworthy Table/Database Commands <a name="other_table_database"></a>
 
 Some other useful table commands:
 
@@ -199,7 +199,7 @@ Some notes on the above:
 * MySQL doesn't support wildcard for user names, so to grant to all users, leave the username section blank.
 * Can add multiple privileges via commas, like `GRANT SELECT, INSERT ON ...`.
 
-## Schema for Fiddle
+### Schema for Fiddle <a name="fiddle_schema"></a>
 
 The full database schema used in the fiddle, presrved here, can be found below:
 
@@ -251,7 +251,7 @@ VALUES ("Smith", "John", "Smallville", "AL", 0, "150 Street"),
         ("Russell", "Ben", "Newcut", "NM", 1, "11 Street"),
         ("Constantine", "Bert", "Mooresville", "TX", 0, "23 Johnsons Road"),
         ("Collins", "Susie", "Longrow", "AL", 1, "1200 12th Avenue"),
-        ("Logan", "Rebecca", "Smallville", "TN", 0, "21 Circle St"),
+        ("Logan", "Rebecca", NULL, "TN", 0, "21 Circle St"),
         ("Smith", "John", "Smallville", "AL", 0, "150 Street");
         
 INSERT INTO Books (Name, Type)
@@ -289,8 +289,156 @@ VALUES (1, 3, '2008-11-01 12:00:00', '2008-12-01', 1),
         (2, 2, '2019-10-12 12:00:00', '2019-11-12', 0);
 ```
 
-## Basic Data Selection
+## Basic Data Selection <a name="data_selection"></a>
 
-### General Select Syntax
+### General Select Syntax <a name="SELECT"></a>
 
-...
+The general syntax for retrieving data can be as simple as `SELECT * FROM table_name` which pulls all (via `*`) columns from the given table. However, a fuller syntax generally takes the form:
+
+```sql
+SELECT Column1, Column2... FROM table_name
+WHERE some_logical_condition
+```
+
+For instance in our fiddle, to select a few columns from our `Customers` table who live in Alabama:
+
+```sql
+SELECT CustomerID, FirstName, LastName, City, State FROM Customers
+WHERE State='AL';
+```
+
+### Only Unique Values <a name="DISTINCT"></a>
+
+To retrieve only the unique values within a column, we can use the append `DISTINCT` within our `SELECT` call. For instance, only the unique states in our `Customers` table:
+
+```sql
+SELECT DISTINCT State FROM Customers;
+```
+
+When used on multiple columns, this returns only distinct combinations:
+```sql
+SELECT DISTINCT FirstName, LastName FROM Customers;
+```
+
+`DISTINCT` also works with functions (discussed later) like `COUNT()` where it is written right in front of the column:
+
+```sql
+SELECT COUNT(DISTINCT State) FROM Customers;
+```
+
+However, care is needed when considering unique rows as, if not invalidated by the table schema, rows may be otherwise unique except for an ID column as is the case in our fiddle schema for our customers. In that table, there are two equivalent "John Smith"'s that would not be caught by a `DISTINCT` call on all rows because the CustomerID columns differ. One might try the below:
+
+```sql
+SELECT DISTINCT * FROM Customers;
+```
+
+Which here would not catch the noted case. Resolving this requires more complicated queries such as using `GROUPBY` and `HAVING` which will be covered later.
+
+### Order By <a name="ORDER_BY"></a>
+
+You can easily order the results of your query as seen below:
+
+```sql
+SELECT * FROM Checkouts
+ORDER BY DueDate DESC, CheckoutTime ASC;
+```
+
+### Limiting Number of Results <a name="limiting_results></a>
+	
+For a large table, you might be interested in limiting the number of results shown. This is handled differently in other dialects (such as the use of `TOP` in SQL Server and `ROWNUM` in Oracle), and other dialects may allow for percentages whereas MySQL does not (at least not simply). Nonetheless, a simple count limitation on the number of records returned in MySQL uses `LIMIT` as seen below:
+
+```sql
+SELECT * FROM Checkouts
+LIMIT 10;
+```
+
+### WHERE examples <a name="WHERE"></a>
+
+The `WHERE` clause accepts typical **logical operators (AND, OR, NOT)** as seen below:
+
+```sql
+SELECT * FROM Customers
+WHERE State='AL' AND NOT City='Smallville';
+```
+
+Parenthesize can be used to work with **combined operators** (typically when using OR) as needed:
+
+```sql
+SELECT * FROM Customers
+WHERE State='AL' AND (City='Smallville' OR City='Longrow');
+```
+
+We can work with **dates and numeric values** in the expected way:
+
+```sql
+SELECT * FROM Checkouts
+WHERE DueDate <='2019:09:30';
+```
+**Note:** Actual numeric values, like integers, do not require the quotes as is typical in many languages.
+
+We can also work with **booleans** in the expected way:
+
+```sql
+SELECT * FROM Checkouts
+WHERE Returned=True;
+```
+
+It also accepts a **between** statement:
+
+```sql
+SELECT * FROM Checkouts
+WHERE DueDate BETWEEN '2018-10-31' AND '2019-10-31';
+```
+
+You can also use an **in** statement to search for values in a list:
+
+```sql
+SELECT * FROM Customers
+WHERE State IN ('OR', 'TX', 'AL');
+```
+
+SQL also accepts `LIKE` for text operations which we'll cover below.
+
+### String Searches via LIKE <a name="LIKE"></a>
+
+You can use `LIKE` within a `WHERE` caluse to search specific patterns in strings similar to regex. Here `%` is a wildcard for any number of characters while `_` is a wildcard for just one character.
+
+For instance, all first names beginning with "B":
+
+```sql
+SELECT * FROM Customers
+WHERE FirstName LIKE 'B%';
+```
+
+Or an example below which will return all "John"'s but using wildcards:
+
+```sql
+SELECT * FROM Customers
+WHERE FirstName LIKE 'J__n';
+```
+
+There are a number of different string search operators that can be used for more complicated queries. [Further details here in the docs](https://dev.mysql.com/doc/refman/8.0/en/string-comparison-functions.html).
+
+### Check for Nulls <a name="nulls"></a>
+
+To work with missing values, we can utilize `IS NULL` and `IS NOT NULL` as seen below:
+
+```sql
+SELECT * FROM Customers
+WHERE City IS NULL;
+```
+
+Or...
+
+```sql
+SELECT * FROM Customers
+WHERE City IS NOT NULL;
+```
+
+### Changing Data <a name="changing_data"></a>
+
+
+
+### Catching Duplicates <a name="duplicates"></a>
+
+Groupby having
