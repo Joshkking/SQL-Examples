@@ -437,7 +437,7 @@ WHERE City IS NOT NULL;
 
 ### Basic Functions <a name="basic_functions"></a>
 
-SQL dialects generally support a number of basic functions like `MIN`, `MAX`, `AVG`, and others that can be applied to columns within a `SELECT` clause. While not necessary, these can be given an "alias" using `AS`, which may be helpful for later references or for providing a more interpretable read in the query results.
+SQL dialects generally support a number of basic functions like `MIN`, `MAX`, `AVG`, and others that can be applied to columns within a `SELECT` clause. While not necessary, these can be given an "alias" using `AS`, which may be helpful for later references or for providing a more interpretable read in the query results. We'll discuss aliases more later.
 
 The query below provides a set of metrics on our `Checkouts` table using a number of these functions as examples. As this query structure is somewhat more complicated, we begin using indents to clarify its structure:
 
@@ -450,10 +450,62 @@ SELECT
 	COUNT(DISTINCT CheckoutID) AS Total_Checkouts
 FROM Checkouts;
 ```
+The result is a new, single-row table-like result of the requested values.
 
 Many other functions exist that can be utilized in use cases beyond this. This W3schools link provides a [general function list](https://www.w3schools.com/sql/sql_ref_mysql.asp).
 
-### Changing Data <a name="changing_data"></a>
+### Aliases <a name="aliases"></a>
+
+Temporary names, or "aliases," can be given to columns or entire tables. This may be helpful in changing the way the results of a query are presented (i.e. to make them more human-readable) or for later referential use. In either case, we use the `AS` commands.
+
+Basic column aliases have already been addressed when discussing functions, but showing an example with spaces:
+```sql
+SELECT
+	BookID AS 'Book Number',
+    	DueDate AS 'Due Date'
+FROM Checkouts;
+```
+Note that in the above we use quote marks to for aliases with spaces. Other dialects might use \[square brackets].
+
+However, it may also be helpful to use aliases when we create a derived value. One example of this is creating an "Address" column as below:
+```sql
+SELECT
+	FirstName,
+    	LastName,
+    	CONCAT(Address,", ",City,", ",State) AS 'Full Address'
+FROM Customers;
+```
+
+Table aliases work within the query, assigning the alias in `FROM` and then utilizing the alias within `SELECT`, `FROM`, and other elements of the query. For instance, we could use the following to get all of the book checkouts made by "John Smith". This would use two tables, so using aliases here might make the reference shorter (either way we do it for example below).
+
+```sql
+SELECT
+	cu.FirstName,
+    	cu.LastName,
+    	ch.BookID
+FROM
+	Customers AS cu,
+    	Checkouts AS ch
+WHERE
+	cu.FirstName='John' AND
+    	cu.LastName='Smith' AND
+    	cu.CustomerID=ch.CustomerID;
+```
+**However** the above use of aliases for tables creeps into the typical use case of joins. This style of querrying is being depreciated in some systems, and for a number of reasons, joins are generally preferrable. The more common alias use case then is for columns.
+
+## Joins <a name="joins"><a/>
+
+asdfasdf
+
+### Advanced Data Selection
+
+asdfsdfa
+
+### Catching Duplicates <a name="duplicates"></a>
+
+Groupby having
+
+## Changing Data <a name="changing_data"></a>
 
 We have already seen how to **insert data** above when building our schema like below:
 
@@ -477,8 +529,3 @@ We can also **delete** existing data as such:
 DELETE FROM table_name WHERE condition;
 ```
 Just like in the update case, one should be very careful the `WHERE` clause resolves as intended.
-
-
-### Catching Duplicates <a name="duplicates"></a>
-
-Groupby having
