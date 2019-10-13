@@ -497,13 +497,17 @@ WHERE
 
 asdfasdf
 
-### Advanced Data Selection
+## Advanced Data Selection <a name="advanced_selection"></a>
 
 asdfsdfa
 
 ### Catching Duplicates <a name="duplicates"></a>
 
 Groupby having
+
+### Handy Functions <a name="handy_functions"></a>
+
+list of ones I think useful
 
 ## Changing Data <a name="changing_data"></a>
 
