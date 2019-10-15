@@ -678,7 +678,7 @@ INNER JOIN Customers AS b
 ON a.City=b.City AND a.CustomerID!=b.CustomerID
 ORDER BY a.City, a.LastName, a.FirstName;
 ```
-In the above, we add `A.CustomerID!=B.CustomerID` to remove matching a customer with his or her self. However, this still allows for matches from alias A -> alias B as wellas alias B -> alias A, so we get some equivalent pairs. One way to remove this would be to write `A.CustomerID>B.CustomerID` instead which will limit out such cases.
+In the above, we add `A.CustomerID!=B.CustomerID` to remove matching a customer with his or her self. However, this still allows for matches from alias A -> alias B as well as alias B -> alias A, so we get some equivalent pairs. One way to remove this would be to write `A.CustomerID>B.CustomerID` instead which will limit out such cases.
 
 ## Advanced Data Selection <a name="advanced_selection"></a>
 
