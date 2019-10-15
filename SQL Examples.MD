@@ -3,7 +3,7 @@
 The following are some basic SQL Examples and notes taken during my Masters working in the MySQL dialect. Since, to me, much of the meaning of any give SQL syntax can be interpretted from the code itself, I'm not attempting to explain as much as provide self-interpretable examples, giving notes when necessary. I also don't intend to hit every function on its own but rather eventually cover most important examples along the way. lso this generally assume basic knowledge of terms and more serves as a set of syntax examples.
 
 To practice the queries, I have been working with a db-fiddle page:
-https://www.db-fiddle.com/f/7wyqDZguJojJBUNp3kWbEt/2
+https://www.db-fiddle.com/f/7wyqDZguJojJBUNp3kWbEt/4
 
 This page has all of the below database creation schema already included, so one can copy and paste the queries there to run. The examples provided below are from the context of this schema representing customers checking out different books. The data inserted is random, and the tables are not meant to be great examples. I simply added what I needed to learn the lanugage.
 
@@ -80,6 +80,7 @@ CREATE TABLE Books (
   BookID INT NOT NULL AUTO_INCREMENT,
   Name VARCHAR(255) NOT NULL,
   Type VARCHAR(10),
+  SequelID INT, # Self-refferential, ID of book in this table that is listed book's sequel, if any
   PRIMARY KEY (BookID),
   CHECK (Type="fiction" OR Type="nonfiction")
 ); 
@@ -224,6 +225,7 @@ CREATE TABLE Books (
   BookID INT NOT NULL AUTO_INCREMENT,
   Name VARCHAR(255) NOT NULL,
   Type VARCHAR(10),
+  SequelID INT, # Self-refferential, ID of book in this table that is listed book's sequel, if any
   PRIMARY KEY (BookID),
   CHECK (Type="fiction" OR Type="nonfiction")
 );  
@@ -246,7 +248,7 @@ CREATE INDEX Idx_LastName
 INSERT INTO Customers (LastName, FirstName, City, State, IsCurrent, Address)
 VALUES ("Smith", "John", "Smallville", "AL", 0, "150 Street"),
 	("Smith", "Elane", "Jordantown", "OR", 0, "23rd street"),
-        ("Crook", "John", "Albertville", "OR", 0, "15th avenue"),
+        ("Crook", "John", "Jordantown", "OR", 0, "15th avenue"),
         ("Smith", "Leslie", "Smallville", "AL", 1, "24 Cross Creek Rd"),
         ("Russell", "Ben", "Newcut", "NM", 1, "11 Street"),
         ("Constantine", "Bert", "Mooresville", "TX", 0, "23 Johnsons Road"),
@@ -254,15 +256,15 @@ VALUES ("Smith", "John", "Smallville", "AL", 0, "150 Street"),
         ("Logan", "Rebecca", NULL, "TN", 0, "21 Circle St"),
         ("Smith", "John", "Smallville", "AL", 0, "150 Street");
         
-INSERT INTO Books (Name, Type)
-VALUES ("How to bake chez", "nonfiction"),
-	("How to tame a wilderbeast", "fiction"),
-        ("Where the wombats go", "fiction"),
-        ("Scary things scarring scary things", "fiction"),
-        ("The tale of Bob", "nonfiction"),
-        ("Happy happy happy", "fiction"),
-        ("'Nonsense' the king", "nonfiction"),
-        ("Cooking soup without water", "nonfiction");
+INSERT INTO Books (Name, Type, SequelID)
+VALUES ("How to bake chez", "nonfiction", 2),
+	("How to tame a wilderbeast", "fiction", 3),
+        ("How to womp a wombat", "fiction", NULL),
+        ("Scary things scarring scary things", "fiction", NULL),
+        ("The tale of Bob", "nonfiction", NULL),
+        ("Happy happy happy", "fiction", NULL),
+        ("'Nonsense' the king", "nonfiction", NULL),
+        ("Cooking soup without water", "nonfiction", NULL);
         
 INSERT INTO Checkouts (BookID, CustomerID, CheckoutTime, DueDate, Returned)
 VALUES (1, 3, '2008-11-01 12:00:00', '2008-12-01', 1),
@@ -286,7 +288,7 @@ VALUES (1, 3, '2008-11-01 12:00:00', '2008-12-01', 1),
         (7, 3, '2019-10-03 12:00:00', '2019-11-03', 1),
         (7, 2, '2019-10-02 12:00:00', '2019-11-02', 1),
         (3, 1, '2019-10-09 12:00:00', '2019-11-09', 0),
-        (2, 2, '2019-10-12 12:00:00', '2019-11-12', 0);
+        (2, 2, '2019-10-12 12:00:00', '2019-11-12', 0);;
 ```
 
 ## Basic Data Selection <a name="data_selection"></a>
@@ -624,9 +626,59 @@ WHERE t1.id IS NULL
 ```
 Simply using `UNION` will not produce the same duplicate handling that `FULL OUTER JOIN` would-- hence our use of the `WHERE` statement to effectively build an exclusionary right join which does handle duplicates correctly. There are a number of posts digging into the logic of this online, so I'll resist dedicating more time here.
 
+### Join with Multiple ON's <a name="join_multiple_ons"></a>
+
+It is possible to perform joins on multiple columns via the use of `ON` *some condition* `AND` *some other condition*.
+
+SELECT
+	CONCAT(Customers.FirstName,' ',Customers.LastName) AS Customer,
+    Checkouts.CheckoutID
+FROM Customers
+LEFT JOIN Checkouts
+ON
+	Checkouts.CustomerID=Customers.CustomerID AND
+    Customers.IsCurrent<Checkouts.Returned;
+
 ### Self Joins <a name="self_joins"></a>
 
-asdfasdf
+Self Joins are a unique case join case where a table is joined with itself (via the use of naming the table with two different aliases). A self-join might be used in cases where data in a table references itself (for instance, hierarchical data such as employees and their managers) or when you want to compare values rows within the same table (for instance, grouping individuals from the same city).
+
+For the syntax, there is no "self join" command. Rather existing selection techniques are used (contextual to the situation) using the table with two different aliases as noted above:
+
+```sql
+SELECT
+	a.column_name,
+	b.column_name, ...
+FROM Table_Name AS a
+LEFT/RIGHT/INNER JOIN Table_Name AS b
+ON join_condition...
+```
+
+For an example of a self join utilizing hierarchical data, we can look at our books table which has the column `SequelID` which is self-referrential to this table. The value is this column links to the `BookID` of the book which is a sequel of the listed record. In this way, it can be used like a foreign key in a self-join to match up books with their sequels:
+
+```sql
+SELECT
+	a.Name AS Book,
+    	b.Name AS Sequel
+FROM Books AS a
+INNER JOIN Books AS b
+ON a.SequelID=b.BookID;
+```
+In the above, we could change it to a left join to get all books regardless of whether or not they have a sequel, along with the name of their matching sequel.
+
+For the use case of comparing rows to each other, let's assume we wanted to list every possible row combination of customers who live in a location with the same city name (we would need to add in state as well, but we're keeping it simple here). We could run a customers table self-join on the city column:
+
+```sql
+SELECT
+	CONCAT(a.FirstName,' ',a.LastName) AS Customer1,
+    	CONCAT(b.FirstName,' ',b.LastName) AS Customer2,
+    	a.City
+FROM Customers AS a
+INNER JOIN Customers AS b
+ON a.City=b.City AND a.CustomerID!=b.CustomerID
+ORDER BY a.City, a.LastName, a.FirstName;
+```
+In the above, we add `A.CustomerID!=B.CustomerID` to remove matching a customer with his or her self. However, this still allows for matches from alias A -> alias B as wellas alias B -> alias A, so we get some equivalent pairs. One way to remove this would be to write `A.CustomerID>B.CustomerID` instead which will limit out such cases.
 
 ## Advanced Data Selection <a name="advanced_selection"></a>
 
