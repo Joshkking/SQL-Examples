@@ -3,7 +3,7 @@
 The following are some basic SQL Examples and notes taken during my Masters working in the MySQL dialect. Since, to me, much of the meaning of any give SQL syntax can be interpretted from the code itself, I'm not attempting to explain as much as provide self-interpretable examples, giving notes when necessary. I also don't intend to hit every function on its own but rather eventually cover most important examples along the way. lso this generally assume basic knowledge of terms and more serves as a set of syntax examples.
 
 To practice the queries, I have been working with a db-fiddle page:
-https://www.db-fiddle.com/f/7wyqDZguJojJBUNp3kWbEt/4
+https://www.db-fiddle.com/f/7wyqDZguJojJBUNp3kWbEt/6
 
 This page has all of the below database creation schema already included, so one can copy and paste the queries there to run. The examples provided below are from the context of this schema representing customers checking out different books. The data inserted is random, and the tables are not meant to be great examples. I simply added what I needed to learn the lanugage.
 
@@ -248,7 +248,7 @@ CREATE INDEX Idx_LastName
 INSERT INTO Customers (LastName, FirstName, City, State, IsCurrent, Address)
 VALUES ("Smith", "John", "Smallville", "AL", 0, "150 Street"),
 	("Smith", "Elane", "Jordantown", "OR", 0, "23rd street"),
-        ("Crook", "John", "Jordantown", "OR", 0, "15th avenue"),
+        ("Crook", "John", "Jordantown", "OR", 1, "15th avenue"),
         ("Smith", "Leslie", "Smallville", "AL", 1, "24 Cross Creek Rd"),
         ("Russell", "Ben", "Newcut", "NM", 1, "11 Street"),
         ("Constantine", "Bert", "Mooresville", "TX", 0, "23 Johnsons Road"),
@@ -285,7 +285,7 @@ VALUES (1, 3, '2008-11-01 12:00:00', '2008-12-01', 1),
         (7, 2, '2019-08-04 12:00:00', '2019-09-04', 1),
         (1, 9, '2019-09-09 12:00:00', '2019-10-09', 0),
         (5, 2, '2019-09-09 12:00:00', '2019-10-09', 1),
-        (7, 3, '2019-10-03 12:00:00', '2019-11-03', 1),
+        (7, 3, '2019-10-03 12:00:00', '2019-11-03', 0),
         (7, 2, '2019-10-02 12:00:00', '2019-11-02', 1),
         (3, 1, '2019-10-09 12:00:00', '2019-11-09', 0),
         (2, 2, '2019-10-12 12:00:00', '2019-11-12', 0);;
@@ -626,18 +626,56 @@ WHERE t1.id IS NULL
 ```
 Simply using `UNION` will not produce the same duplicate handling that `FULL OUTER JOIN` would-- hence our use of the `WHERE` statement to effectively build an exclusionary right join which does handle duplicates correctly. There are a number of posts digging into the logic of this online, so I'll resist dedicating more time here.
 
-### Join with Multiple ON's <a name="join_multiple_ons"></a>
+### Multiple ON Conditions and Logic <a name="join_multiple_ons"></a>
 
-It is possible to perform joins on multiple columns via the use of `ON` *some condition* `AND` *some other condition*.
+It is possible to perform joins on multiple columns via the use of `ON` *some condition* `AND` *some other condition*. A likely use case for this is when multiple keys are present. However, it should also be noted that the join-on conditions also accept logical operators. Since the multiple keys case is simply a matter of matching (and not as present in our database schema here), and the logical operators case presents more interesting patterns, we'll focus on the latter.
 
+When using logical operators within `JOIN ON` conditions, two interesting behaviors come up. In the case of inner joins, the logical condition functions similar to a `WHERE` statement effectively filtering out matches that don't meet the `JOIN ON` condition.
+
+For instance, consider a case where we wanted to review our checkouts table for any checkouts that aren't returned, but only when the customer is still active. Since, in our schema `Checkouts.Returned` and `Customers.IsCurrent` have values represented by 0's (false) and 1's (true), this logical condition could be written as `Customers.IsCurrent > Checkouts.Returned` (the customer is current, 1, which is greater than the book not being returned, 0). We could use multiple `JOIN ON` conditions to capture this:
+
+```sql
 SELECT
 	CONCAT(Customers.FirstName,' ',Customers.LastName) AS Customer,
-    Checkouts.CheckoutID
+   	Checkouts.CheckoutID
+FROM Customers
+INNER JOIN Checkouts
+ON
+	Checkouts.CustomerID=Customers.CustomerID AND
+    	Customers.IsCurrent>Checkouts.Returned;
+```
+
+...which filters down to only the records desired. The result is equivalent to the same statement with a `WHERE` clause instead:
+
+```sql
+SELECT
+	CONCAT(Customers.FirstName,' ',Customers.LastName) AS Customer,
+    	Checkouts.CheckoutID
+FROM Customers
+INNER JOIN Checkouts
+ON
+	Checkouts.CustomerID=Customers.CustomerID
+WHERE
+    	Customers.IsCurrent>Checkouts.Returned;
+```
+
+**BUT** this behavior is only consisten for inner joins. An outer join, such as a left join with multiple `JOIN ON`'s would still return all customers as seen when running the below:
+
+```sql
+SELECT
+	CONCAT(Customers.FirstName,' ',Customers.LastName) AS Customer,
+   	Checkouts.CheckoutID
 FROM Customers
 LEFT JOIN Checkouts
 ON
 	Checkouts.CustomerID=Customers.CustomerID AND
-    Customers.IsCurrent<Checkouts.Returned;
+   	Customers.IsCurrent>Checkouts.Returned;
+```
+
+...where the returned output gives all customers but only fills in the values from our joined table when they meet both `JOIN ON` conditions. To filter it down to only the rows of interest in our given case, a `WHERE` clause would be needed.
+
+Summing up, multiple `ON` clauses in joins have different behaviors for inner and outer joins. In inner joins, the `ON` clauses behave similar to `WHERE` conditions and filter down the results. In outer joins, the `ON` clauses determine which matches to fill in values
+ on from the joined table (and a `WHERE` would be needed to filter down the records themselves). This makes sense as `ON` determines how to match values to fill in, whereas `WHERE` operates last to filter down the records. Inner joins only have similar behavior as they represent the intersection of the two tables at your given condition.
 
 ### Self Joins <a name="self_joins"></a>
 
