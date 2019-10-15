@@ -277,8 +277,8 @@ VALUES (1, 3, '2008-11-01 12:00:00', '2008-12-01', 1),
         (4, 4, '2010-01-03 12:00:00', '2010-02-03', 1),
         (3, 3, '2010-02-09 12:00:00', '2010-03-09', 1),
         (7, 8, '2010-11-24 12:00:00', '2010-12-24', 0),
-        (6, 6, '2010-07-22 12:00:00', '2010-08-22', 1),
-        (6, 2, '2011-07-15 12:00:00', '2011-08-15', 1),
+        (2, 6, '2010-07-22 12:00:00', '2010-08-22', 1),
+        (3, 2, '2011-07-15 12:00:00', '2011-08-15', 1),
         (8, 1, '2019-08-12 12:00:00', '2019-09-12', 1),
         (7, 2, '2019-08-04 12:00:00', '2019-09-04', 1),
         (1, 9, '2019-09-09 12:00:00', '2019-10-09', 0),
@@ -491,9 +491,140 @@ WHERE
     	cu.LastName='Smith' AND
     	cu.CustomerID=ch.CustomerID;
 ```
-**However** the above use of aliases for tables creeps into the typical use case of joins. This style of querrying is being depreciated in some systems, and for a number of reasons, joins are generally preferrable. The more common alias use case then is for columns.
+**However** the above use of querrying multiple tables creeps into the typical use case of joins. The style of querrying above is being depreciated in some systems, and for a number of reasons, joins are generally preferrable. As such, it would be more common to see table aliases in joins (discussed later) such as to shorten the code, or simply seeing column aliases as we noted above.
 
 ## Joins <a name="joins"><a/>
+
+Joins are where a relational database really gets to take advantage of the relational algebra underlying its structure, combining records from multiple tables based on shared columns between them (often various keys). There are four "main" join types, though others exist and will be discussed later:
+* **Inner Join** - Returns only records that have matches in both tables (analogous to the intersection of a venn diagram). In this case, one would expect few or minimal null values returned.
+* **Left (Outer) Join** - Returns *all* records from the "left" table, regardless of whether there is a corresponding match on the right, as well as values from the "right" table where there is a match on the left (analogous to the left circle on a venn diagram including the part intersecting with the right). It should be noted that "left" and "right" are rather arbitrary here and only defined by as such by their relative location in the code syntax. In this case, one might expect a number of null values returned for records in the "left" table that do not have corresponding values in the "right" table.
+* **Right (Outer) Join** - Like a Left Join, but just with swapped sides.
+* **Full (Outer) Join** - Effectively, a merger of both tables, including all records from each that match the query. One would expect the most possible null values from this type of join. This join type is rarely used.
+
+The general SQL algorithm is to `SELECT` columns from both databases simultaneously (noting the table where each comes from), include the first (or "Left") table in the `FROM` clause, provide the appropriate table to merge it with via `JOIN`, and finally specify the condition designating which columns should match values via the keyword `ON` (for instance the primary key in one table with the corresponding foreign key in another). Joins may also be coordinated with more than 2 tables which will also be noted below.
+
+### Inner Join <a name="inner_join"></a>
+
+The general structure of an inner join is:
+
+```sql
+SELECT table1.column_name, table2.column_name, ...
+FROM table1
+INNER JOIN table2
+ON table1.column_name = table2.column_name;
+```
+
+For instance, if we wanted a list of book names (from our `Books` table) for every checkout in the `Checkouts` table, we could use an inner join like so:
+
+```sql
+SELECT Checkouts.CheckoutID, Checkouts.CheckoutTime, Books.Name
+FROM Checkouts
+INNER JOIN Books
+ON Checkouts.BookID = Books.BookID;
+```
+
+If we also wanted the customer name for each checkout, then this requires us to join three tables together. The syntax generally remains the same:
+
+```sql
+SELECT
+	Checkouts.CheckoutID,
+    	Checkouts.CheckoutTime,
+    	Books.Name,
+    	Customers.FirstName,
+    	Customers.LastName
+FROM Checkouts
+INNER JOIN Books ON Checkouts.BookID = Books.BookID
+INNER JOIN Customers ON Checkouts.CustomerID = Customers.CustomerID;
+```
+
+However, in some dialects (like MS Access) parenthesize are required to group each join with the original table in a sequential order, as below:
+
+```sql
+SELECT
+	Checkouts.CheckoutID,
+    	Checkouts.CheckoutTime,
+    	Books.Name,
+    	Customers.FirstName,
+    	Customers.LastName
+FROM ((Checkouts
+INNER JOIN Books ON Checkouts.BookID = Books.BookID)
+INNER JOIN Customers ON Checkouts.CustomerID = Customers.CustomerID);
+```
+It should be noted that the use of parenthesize also provides extra utility, allowing us to force the code evaluator to implement the joins in the order setup by the parentheticals. This isn't particularly helpful here but might be needed in a case where inner joins were mixed with outer ones.
+
+### Left and Right (Outer) Joins <a name="side_joins"></a>
+
+Since a right join is effectively the same as a left join just with flipped sides, many common use cases can be addressed via a left join. As such (and given the similar syntax), we'll just address left joins here. In either case, the first table mentioned in the `FROM` clause becomes the "Left" table in the join.
+
+For instance, let's say we wanted a list of every book name with every checkout, but we wanted to keep all of the books listed even if they had not yet been checked out, we could do:
+
+```sql
+SELECT Books.BookID, Books.Name, Checkouts.CheckoutID
+FROM Books
+LEFT JOIN Checkouts
+ON Books.BookID = Checkouts.BookID;
+```
+
+This would return at least one record for *all* books with their corresponding Checkout ID's (if they exist) and multiple records for each book in the case they had been checked out multiple times. Running the above we can see that one book returns a `null` value for `CheckoutID` as it has not yet been checked out.
+
+### Full (Outer) Joins and Unions <a name="full_joins_unions"></a>
+
+While in MySQL, a full outer join is not supported, in other dialects it often looks similar to:
+
+```sql
+# NOTE: NOT SUPPORTED IN MYSQL
+SELECT table1.column_name, table2.column_name, ...
+FROM table1
+FULL OUTER JOIN table2
+ON table1.column_name = table2.column_name
+```
+
+Since this is not supported in MySQL, we might take advantage of the `UNION` operator instead. `UNION` allows us to append values from similar columns together (stacked vertically) from separate tables. When doing so:
+* Each `SELECT` clause from each of the tables must ask for the same number of columns (since they will be stacked vertically).
+* The corresponding selected columns should be in the same order in each `SELECT` clause.
+* The columns should have similar data types (otherwise, even if the querry succeeds, you're not building a sensibly interpretable set).
+When using `UNION`, the command automatically defaults to only returning *distinct* values. You can use `UNION ALL` to return non-distinct values as well.
+
+Unions have the general form:
+```sql
+SELECT column_name(s) FROM table1
+UNION
+SELECT column_name(s) FROM table2;
+```
+So you might think of unions as *"run query 1 and query 2, and stack the results on top of each other."*
+
+For instance, let's say we wanted a report of all things in our book checkouts setup we might should check back in on-- this might be customers who are no longer current (given by `IsCurrent` in our customers table) or books that weren't returned (given by `Returned` in our checkouts table). We could `UNION` these two sets together as so:
+
+```sql
+SELECT
+	'Customer Not Current' AS 'Issue Type', 
+    	LastName AS 'Problem Case' 
+FROM Customers
+WHERE IsCurrent=False
+UNION ALL
+Select 
+	'Checkout Not Returned' AS `Issue Type`,
+   	 CheckoutID AS 'Problem Case'
+FROM Checkouts
+WHERE Returned=False;
+```
+Some notes on the above:
+* This will return a table with two columns- "Issue Type" and "Problem Case" with the corresponding results from both tables stacked vertically.
+* The use of quotes for `Customer Not Current` and `Checkout Not Returned` are providing manual values to be returned in the query. For every new record given by the first `SELECT` there will be a value "Customer Not Current" in the `Issue Type` column to distinguish. The corrollary happens with the "Checkout Not Returned" values. This helps us differentiate the results from the two tables.
+* The set of `AS` statements and aliases in the second `SELECT` are not necessary and might even cause issues if not written correctly. Since our values stack vertically, there are only two column names, and MySQL will take the colum name values from the aliases in the first `SELECT` just fine.
+
+One can emulate a `FULL OUTER JOIN` in MySQL using `UNION ALL`. The manner is slightly tedious but effectively ammounts to a union of a left join and a right join with a `WHERE` clause to handle duplicates correctly. A template is given below:
+```sql
+SELECT * FROM t1
+LEFT JOIN t2 ON t1.id = t2.id
+UNION ALL
+SELECT * FROM t1
+RIGHT JOIN t2 ON t1.id = t2.id
+WHERE t1.id IS NULL
+```
+Simply using `UNION` will not produce the same duplicate handling that `FULL OUTER JOIN` would-- hence our use of the `WHERE` statement to effectively build an exclusionary right join which does handle duplicates correctly. There are a number of posts digging into the logic of this online, so I'll resist dedicating more time here.
+
+### Self Joins <a name="self_joins"></a>
 
 asdfasdf
 
