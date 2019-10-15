@@ -69,7 +69,7 @@ DROP COLUMN Email,
 MODIFY COLUMN IsCurrent BOOL;
 ```
 
-Note in this case there is no parenthesize. Where we used `MODIFY COLUMN` here, it was done to change the datatype of the `IsCurrent` field to boolean. You can also use `ALTER TABLE` to add or drop various constraints on fields.
+Note in this case there is no parentheses. Where we used `MODIFY COLUMN` here, it was done to change the datatype of the `IsCurrent` field to boolean. You can also use `ALTER TABLE` to add or drop various constraints on fields.
 
 ### Check Constraint Example <a name="CHECK_constraint"></a>
 
@@ -151,7 +151,7 @@ VALUES (value1, value2, value3, ...);
 INSERT INTO table_name
 VALUES (value1, value2, value3, ...);
 ```
-Additional rows can be added by adding another parenthesize line.
+Additional rows can be added by adding another parentheses line.
 
 The second case is often not used with tables having an `AUTO INCREMENT` column as we typically let the database handle that for us. As such, to use the second case we would need to be providing the values for that column directly since this method assumes we provide values for all columns.
 
@@ -361,7 +361,7 @@ SELECT * FROM Customers
 WHERE State='AL' AND NOT City='Smallville';
 ```
 
-Parenthesize can be used to work with **combined operators** (typically when using OR) as needed:
+Parentheses can be used to work with **combined operators** (typically when using OR) as needed:
 
 ```sql
 SELECT * FROM Customers
@@ -537,7 +537,7 @@ INNER JOIN Books ON Checkouts.BookID = Books.BookID
 INNER JOIN Customers ON Checkouts.CustomerID = Customers.CustomerID;
 ```
 
-However, in some dialects (like MS Access) parenthesize are required to group each join with the original table in a sequential order, as below:
+However, in some dialects (like MS Access) parentheses are required to group each join with the original table in a sequential order, as below:
 
 ```sql
 SELECT
@@ -550,7 +550,7 @@ FROM ((Checkouts
 INNER JOIN Books ON Checkouts.BookID = Books.BookID)
 INNER JOIN Customers ON Checkouts.CustomerID = Customers.CustomerID);
 ```
-It should be noted that the use of parenthesize also provides extra utility, allowing us to force the code evaluator to implement the joins in the order setup by the parentheticals. This isn't particularly helpful here but might be needed in a case where inner joins were mixed with outer ones.
+It should be noted that the use of parentheses also provides extra utility, allowing us to force the code evaluator to implement the joins in the order setup by the parentheticals. This isn't particularly helpful here but might be needed in a case where inner joins were mixed with outer ones.
 
 ### Left and Right (Outer) Joins <a name="side_joins"></a>
 
