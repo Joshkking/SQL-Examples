@@ -720,7 +720,50 @@ In the above, we add `A.CustomerID!=B.CustomerID` to remove matching a customer 
 
 ## Advanced Data Selection <a name="advanced_selection"></a>
 
-asdfsdfa
+### Group By and Having <a name="GROUP_BY"></a>
+
+`GROUP BY` allows us to group records together via sum aggregate function (like `COUNT`, `MIN`, `MAX`, etc.) and the values of a the column when group on. Without an aggregate function, the data would not be able to be represented by a simple table (it would require some higher-dimensional structure), so an aggregate function is expected.
+
+For instance, say we wanted a count of how many of our customers were in each state:
+
+```sql
+SELECT
+	COUNT(LastName) AS `Number in State`, 
+    	State
+FROM Customers
+GROUP BY State;
+```
+...which returns a State column and the aggregated count of the number of customers in each state in a separate column.
+
+`GROUP BY` also can work with joins. For instance, presume we wanted the number of checkouts by each customer. Since we will group by values on the customers table and are using a left join with it first, we can select multiple columns from it. The records from the checkout table is what is aggregated:
+
+```sql
+SELECT
+    	Customers.FirstName,
+   	Customers.LastName,
+	COUNT(Checkouts.CheckoutID) AS `Number of Checkouts`
+FROM Customers
+LEFT JOIN Checkouts
+ON Checkouts.CustomerID=Customers.CustomerID
+GROUP BY Customers.CustomerID;
+```
+
+As the `WHERE` clause does not work with aggregate functions, we have to use `HAVING`, though the command takes logical conditions in a similar manner.
+
+For instance, say we wanted the count of customers in each state, but only for states with more than one customer (count > 1):
+
+```sql
+SELECT
+	COUNT(CustomerID) AS `Number of Customers`,
+    	State
+FROM Customers
+GROUP BY State
+HAVING Count(CustomerID)>1;
+```
+
+### Any, All <a name="having_any_all"></a>
+
+kkkjkjkj
 
 ### Catching Duplicates <a name="duplicates"></a>
 
