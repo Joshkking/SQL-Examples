@@ -748,7 +748,7 @@ ON Checkouts.CustomerID=Customers.CustomerID
 GROUP BY Customers.CustomerID;
 ```
 
-As the `WHERE` clause does not work with aggregate functions, we have to use `HAVING`, though the command takes logical conditions in a similar manner.
+As the `WHERE` clause does not evaluate aggregated column data (though it can still be used for other criteria in a group by), we have to use `HAVING` on aggregated values, though this command takes logical conditions in a similar manner.
 
 For instance, say we wanted the count of customers in each state, but only for states with more than one customer (count > 1):
 
