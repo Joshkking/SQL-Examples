@@ -421,9 +421,9 @@ WHERE FirstName LIKE 'J__n';
 
 There are a number of different string search operators that can be used for more complicated queries. [Further details here in the docs](https://dev.mysql.com/doc/refman/8.0/en/string-comparison-functions.html).
 
-### Check for Nulls <a name="nulls"></a>
+### Working with Nulls <a name="nulls"></a>
 
-To work with missing values, we can utilize `IS NULL` and `IS NOT NULL` as seen below:
+We can compare to the null case in logical expressions using `IS NULL` and `IS NOT NULL` as seen below:
 
 ```sql
 SELECT * FROM Customers
@@ -436,6 +436,17 @@ Or...
 SELECT * FROM Customers
 WHERE City IS NOT NULL;
 ```
+
+We can also use the `IFNULL()` function to return an alternative value if null. For instance:
+
+```sql
+SELECT
+	FirstName,
+    	IFNULL(City, 'MISSING CITY VALUE!') AS 'City'
+FROM Customers;
+```
+
+We could also use the `COALESCE()` function which would return the first non-null value in the list/array (though its use cases may be less often).
 
 ### Basic Functions <a name="basic_functions"></a>
 
@@ -814,6 +825,7 @@ Queries constructed with `ANY` or `ALL` often have equivalent ways they can be c
 **Some examples of `ANY` and `ALL` as well as their equivalencies (when appropriate) below:**
 
 **`ANY` equivalency example**
+
 Say we wanted all of our customer data for customers that have books that are not returned:
 
 ```sql
@@ -835,6 +847,7 @@ WHERE CustomerID IN (SELECT CustomerID
 ```
 
 **`ANY` non-equivalency example**
+
 Say we wanted all of our customer data where the customers are current (`Customers.IsCurrent` is 1), but they have books that aren't returned (`Checkouts.Returned` is 0). This then is true when `Customers.IsCurrent > Checkouts.Returned`, and we can use `ANY` to compare the values between the tables.
 
 ```sql
@@ -855,6 +868,7 @@ WHERE EXISTS (SELECT Returned
 ```
 
 **`ALL` example**
+
 Say we wanted the longest name in our books table that's a fiction book. While the below is not likely the optimal SQL code for this query, it can be used as a functional example of using `ALL` in our data:
 
 ```sql
@@ -865,15 +879,50 @@ WHERE LENGTH(Name) >= ALL(SELECT LENGTH(Name)
 				WHERE Type='fiction');
 ```
 
-## Catching Duplicates <a name="duplicates"></a>
+## Case <a name="CASE"></a>
 
-Groupby having
+`CASE` works like an if-then-else statement, evaluating each record in the returned table and returning results accordingly. It can be used in different commands (such as `SELECT` or `ORDER BY`). Regardless of the use case, the general syntax is:
+
+```sql
+CASE
+    WHEN condition1 THEN result1
+    WHEN condition2 THEN result2
+    ...
+    ELSE else_result
+END;
+```
+
+`CASE` can be built into `SELECT` statements to create a new column whose values are contingent on data in the existing columns. For instance, say we wanted a new column that described which region each customer was in:
+
+```sql
+SELECT
+	FirstName,
+    	LastName,
+    	State,
+    	CASE
+    		WHEN State IN ('AL', 'TN', 'FL') THEN 'Southeast'
+        	WHEN State IN ('OR', 'WA') THEN 'Northwest'
+        	WHEN State in ('NM', 'TX') THEN 'Southwest'
+        	ELSE 'Region unknown'
+    	END AS 'Customer Region'
+FROM Customers;
+```
+
+`CASE` can also be used in `ORDER BY` functions (for instance, *if value is null, order by x, if not, order by y*), within functions, and many other uses. Note that regardless of the location it is used, `CASE` directly returns the value after `THEN` or `ELSE` to that keyword or function. Depending on the situation and SQL dialect, parentheses may need be added around the `CASE` clause for correct evaluation or simply for clarity of syntax.
+
+## Variables <a name="variables"></a>
+
+## Stored Procedures <a name="stored_procedures"></a>
 
 ## Handy Functions <a name="handy_functions"></a>
 
 list of ones I think useful
 
-## Changing Data <a name="changing_data"></a>
+## Catching Duplicates <a name="duplicates"></a>
+
+Groupby having
+
+## Changing Data and Tables <a name="changing_data"></a>
 
 We have already seen how to **insert data** above when building our schema like below:
 
@@ -889,7 +938,26 @@ UPDATE table_name
 SET column1 = value1, column2 = value2, ...
 WHERE condition;
 ```
-It's important to note the `WHERE` condition in the above. This determines which values get changed, so one must be used you're selecting exactly what you want before updating. Note that not all the column values must be provided in `SET`, only the ones you want to update.
+NOTE:  It's important to note the `WHERE` condition in the above. This determines which values get changed, so one must be used you're selecting exactly what you want before updating. Note that not all the column values must be provided in `SET`, only the ones you want to update.
+
+We can **copy data from a table into a *new one*** using `SELECT INTO`:
+
+```sql
+SELECT column1, column2, column3, ...
+INTO new_table # can add 'IN some_external_database' to this line if needed
+FROM copied_table
+WHERE condition;
+```
+
+And we can **copy data from one table into *another table*** using `INSERT INTO` a table, followed by a `SELECT`:
+
+```sql
+INSERT INTO table2 (column1, column2, ...)
+SELECT column1, column2, ...
+FROM table1
+WHERE condition;
+```
+NOTE:  The `WHERE` clause determines which values to copy, not where to put them.
 
 We can also **delete** existing data as such:
 
