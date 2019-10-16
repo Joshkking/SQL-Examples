@@ -760,16 +760,116 @@ FROM Customers
 GROUP BY State
 HAVING Count(CustomerID)>1;
 ```
+### Exists <a name="EXISTS"></a>
+
+`EXISTS` check whether or not a subquery returns any values at all, returns true if so, and thus prints the corresponding record. The general syntax is:
+
+```sql
+SELECT column_name(s)
+FROM table_name
+WHERE EXISTS
+	(SELECT column_name FROM table_name WHERE condition)
+```
+
+The syntax here is not as intuitive as other setups. In this case, the `SELECT` from the subquery is effectively ignored as `EXISTS` is only interested if any data is returned or not. This evaluated per record of the column in the outer `SELECT` which is fed to the `WHERE EXISTS` clause for each evaluation.
+
+For instance, say we wanted a list of all customer names that had actually checked out a book. We could use `WHERE EXISTS` to see if their customer ID actually exists in the checkouts table:
+
+```sql
+SELECT FirstName, LastName
+FROM Customers
+WHERE EXISTS (SELECT
+              	# The column is abritrary as it is effectively ignored
+              	CheckoutID
+              FROM Checkouts
+              WHERE Customers.CustomerID = Checkouts.CustomerID);
+```
+
+In the above, the `CustomerID` for each record in our outer query gets passed to the `WHERE EXISTS` subquery to use in its own `WHERE` statement which either returns true or false to determine whether values for the outer selction query are printed. One may notice the functionality here is similar to that of a sort of filtered join. While may `WHERE EXISTS` cases could be rewritten as joins, there are sometimes benefits for `EXISTS` instead:
+ * `EXISTS` stops the moment it finds a match, so in some cases it may be quicker than a join.
+ * There are different possible use cases since `EXISTS` returns a boolean.
+ * If the join would result in duplicates, you might consider using `EXISTS` which will avoid this and case sometimes has different behavior than say a `SELECT DISTINCT` with a join (compare the results of merging two tables and filtering vs simply evaluating each record in one table as to whether it should be printed or discarded).
 
 ### Any, All <a name="having_any_all"></a>
 
-kkkjkjkj
+`ANY` and `ALL` are used with `WHERE` or `HAVING` to compare values in a column to those in another array, that array *most often from a sub-query* (though some dialects allow you to write the array/list directly). The comparison will return true and print the values if the comparison is true for any values in the list in the case of `ANY`, or in the case of `ALL` when all the comparison is true for all values in the list.
 
-### Catching Duplicates <a name="duplicates"></a>
+While this isn't necessarily used often, it has a lot of utility as `ANY` and `ALL` work with any logical operator. Typical use cases might be returning values after a comparison of a column in one table to that of another table, or comparing aggregated values.
+
+The general syntax is:
+
+```sql
+SELECT column_names
+FROM table_name
+WHERE column_name operator ANY # or ALL
+	(SELECT column_name
+	FROM table_name);
+```
+
+Queries constructed with `ANY` or `ALL` often have equivalent ways they can be constructed such as:
+* In the case of testing for equivalency using `ANY`, the syntax `WHERE X = ANY(Y)` is equivalent to `WHERE X IN Y`.
+* In the case of some other comparison using `ANY`, syntax can be equivalent to using `EXISTS` such as `WHERE X > ANY(Y)` could be written with `WHERE EXISTS(subquery testing X > Y)`.
+* In the case of `ALL` this is equivalent to many `AND` statements within the logical comparison, one for each value in the array. For example, `WHERE X > ALL(Z)` is equivalent to `WHERE X > a AND X > b AND X > c...for the length of the array/subquery` assuming \[a, b, c, ...] comprise array/subquery `Z`.
+
+**Some examples of `ANY` and `ALL` as well as their equivalencies (when appropriate) below:**
+
+**`ANY` equivalency example**
+Say we wanted all of our customer data for customers that have books that are not returned:
+
+```sql
+SELECT *
+FROM Customers
+WHERE CustomerID = ANY(SELECT CustomerID
+			FROM Checkouts
+                       	WHERE Returned=0);
+```
+
+This is equivalent to using `IN` instead:
+
+```sql
+SELECT *
+FROM Customers
+WHERE CustomerID IN (SELECT CustomerID
+			FROM Checkouts
+                       	WHERE Returned=0);
+```
+
+**`ANY` non-equivalency example**
+Say we wanted all of our customer data where the customers are current (`Customers.IsCurrent` is 1), but they have books that aren't returned (`Checkouts.Returned` is 0). This then is true when `Customers.IsCurrent > Checkouts.Returned`, and we can use `ANY` to compare the values between the tables.
+
+```sql
+SELECT *
+FROM Customers
+WHERE IsCurrent > ANY (SELECT Returned
+                       FROM Checkouts);
+```
+
+This is equivalent to using `EXISTS` as such:
+
+```sql
+SELECT *
+FROM Customers
+WHERE EXISTS (SELECT Returned
+             	FROM Checkouts
+            	WHERE Customers.IsCurrent > Checkouts.Returned);
+```
+
+**`ALL` example**
+Say we wanted the longest name in our books table that's a fiction book. While the below is not likely the optimal SQL code for this query, it can be used as a functional example of using `ALL` in our data:
+
+```sql
+SELECT Name
+FROM Books
+WHERE LENGTH(Name) >= ALL(SELECT LENGTH(Name)
+				FROM Books
+				WHERE Type='fiction');
+```
+
+## Catching Duplicates <a name="duplicates"></a>
 
 Groupby having
 
-### Handy Functions <a name="handy_functions"></a>
+## Handy Functions <a name="handy_functions"></a>
 
 list of ones I think useful
 
