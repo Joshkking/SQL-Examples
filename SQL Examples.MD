@@ -1091,8 +1091,8 @@ MySQL does support the utilization of variables, of which there are 3 main types
   * Can be created as so: `DECLARE var_name var_type DEFAULT value default_value`
   * The scope of local variables is the `BEGIN ... END` block they reside in.
 * **[System variables](https://dev.mysql.com/doc/refman/5.5/en/using-system-variables.html)** (prefix is `@@`) - These are variables created and stored on the server itself and can be global or dependent on the session.
- * These are accessed as `@@var_name`
- * To see the current list of system variable values running on the server, you can use `SHOW VARIABLES;`
+  * These are accessed as `@@var_name`
+  * To see the current list of system variable values running on the server, you can use `SHOW VARIABLES;`
  
  ### Stored Procedures <a name="stored_procedures"></a>
  
