@@ -927,11 +927,27 @@ FROM Customers;
 
 ## Handy Functions <a name="handy_functions"></a>
 
-list of ones I think useful
+Below is a list of handy functions just for reference. It is by no means exhaustive (see [the docs](https://dev.mysql.com/doc/refman/8.0/en/func-op-summary-ref.html) for a longer list), and I only include explanatory notes here at my own need. The functions below may take param
+* COUNT()
+* MAX()
+* MIN()
+* AVG()
+* SUM()
+* SQRT()
+* ABS()
+* ROUND()
+* STD()
+* RAND() - to generate a random number
+* CONCAT() - for joining strings together
+* CURDATE()
+* NOW() - timestamp
+* DATEDIFF()
+* EXTRACT() - extracts parts of a date, various other functions like HOUR() can be used as shortcuts
+* LENGTH() - functions on strings
+* LCASE() - convert to lower case (same as LOWER())
+* UCASE() - convert to upper case (same as UPPER())
 
-## Catching Duplicates <a name="duplicates"></a>
-
-Groupby having
+Many other helpful numeric, string, and date functions also exist.
 
 ## Changing Data and Tables <a name="changing_data"></a>
 
@@ -976,6 +992,42 @@ We can also **delete** existing data as such:
 DELETE FROM table_name WHERE condition;
 ```
 Just like in the update case, one should be very careful the `WHERE` clause resolves as intended.
+
+## Catching Duplicates <a name="duplicates"></a>
+
+As noted when discussing `SELECT DISTINCT`, `DISTINCT` is not sufficient to catch duplicates in a table where one column (such as an auto-incremented ID key) is different between the otherwise duplicate records. Generally, this would only occur in the case of user error or a table with poor validations. To catch such duplicates, we need a more complex query.
+
+One method in MySQL (other methods may exist in different dialects) to look for duplicates is to group each record according to a column or columns that you believe should be distinct, select their aggregate counts, and only return those with aggregated counts higher than 1. A general syntax template for this follows:
+
+```sql
+SELECT 
+	column1, COUNT(column1),
+	column2, COUNT(column2)
+	...other as needed...
+FROM table_name
+GROUP BY column1, column2 ...others as needed...
+HAVING
+	COUNT(column1) > 1 AND 
+	COUNT(column2) > 1 AND 
+	...others as needed...
+```
+
+For instance, we can look at the first name, last name, and address fields of our customers database as no customer should share all of these values (in our case):
+
+```sql
+SELECT
+	FirstName, COUNT(FirstName),
+    	LastName, COUNT(LastName),
+    	Address, COUNT(Address)
+FROM Customers
+GROUP BY FirstName, LastName, Address
+HAVING
+	COUNT(FirstName) > 1 AND
+    	COUNT(LastName) > 1 AND
+    	COUNT(Address) > 1;
+```
+
+We could then review the count aggregates to make a decision on whether the records are truly different or not (and to see how many times they are duplicated). In this case, we would see there does indeed exist a duplicate in our table. We could then run another query to inspect the entries and finally remove one or more of the records as needed.
 
 ## Stored Operations (variables, functions, etc.) <a name="stored_operations"></a>
 
@@ -1162,7 +1214,7 @@ WHERE table_type = 'VIEW';
 
 A trigger is a stored program that is automatically run due to the onset of an event (such as changing data). For MySQL, triggers are supported for the `INSERT`, `UPDATE`, and `DELETE` events. The trigger can be "row-level" (it activates for every row the event operates on) or "statement-level" (operates only once per event, i.e. on the "statement"). However, MySQL currently only supports row-level triggers. Triggers are particularly handy for maintaining the integrity of your table as well as running automated tasks.
 
-Most basic validations should be done at the table creation step (for instance `NOT NULL`); however, triggers allows for extended checks. They may increase response time on the server though which should be considered before use.
+Most basic validations should be done via constraints at the table creation step (for instance `NOT NULL`); however, triggers allows for extended checks. They may increase response time on the server though, so one should be cautious in implementing them.
 
 The general syntax for a trigger is:
 
