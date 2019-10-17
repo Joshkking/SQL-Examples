@@ -18,10 +18,8 @@ This page has all of the below database creation schema already included, so one
   * [Creating Indexes](#creating-indexes-)
   * [Inserting Values](#inserting-values-)
   * [Other Table/Database Commands](#other-noteworthy-tabledatabase-commands-)
-* [Fiddle Schema](#schema-for-fiddle-)
-  * The full table schema and inserted values for the created fiddle can be found here.
-* [Basic Data Selection](#basic-data-selection-)
-  * Note that what I consider "basic" and "advanced" data selection is entirely arbitrary (self-perceived) here.
+* [Fiddle Schema](#schema-for-fiddle-) - The full table schema and inserted values for the created fiddle can be found here.
+* [Basic Data Selection](#basic-data-selection-) - Note that what I consider "basic" and "advanced" data selection is entirely arbitrary (self-perceived) here.
   * [General Select Syntax](#general-select-syntax-)
   * [Only Unique Values](#only-unique-values-)
   * [Order By](#order-by-)
