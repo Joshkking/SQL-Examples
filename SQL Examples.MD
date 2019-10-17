@@ -7,6 +7,46 @@ https://www.db-fiddle.com/f/7wyqDZguJojJBUNp3kWbEt/6
 
 This page has all of the below database creation schema already included, so one can copy and paste the queries there to run. The examples provided below are from the context of this schema representing customers checking out different books. The data inserted is random, and the tables are not meant to be great examples. I simply added what I needed to learn the lanugage.
 
+## Table of Contents
+* [Basic Table Schema](#basic-table-schema-)
+* []()
+* []()
+* []()
+* []()
+* []()
+* []()
+* []()
+* []()
+* []()
+* []()
+* []()
+* []()
+* []()
+* []()
+* []()
+* []()
+* []()
+* []()
+* []()
+* []()
+* []()
+* []()
+* []()
+* []()
+* []()
+* []()
+* []()
+* []()
+* []()
+* []()
+* []()
+* []()
+* []()
+* []()
+* []()
+* []()
+* []()
+
 ## Basic Table Schema <a name="table_schema"></a>
 
 ### Table Creation <a name="table_creation"></a>
