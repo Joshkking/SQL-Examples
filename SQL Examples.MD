@@ -1157,3 +1157,21 @@ Views can be dropped, renamed, and in some cases (though not discussed here) man
 SHOW FULL TABLES 
 WHERE table_type = 'VIEW';
 ```
+
+### Triggers <a name="triggers"></a>
+
+A trigger is a stored program that is automatically run due to the onset of an event (such as changing data). For MySQL, triggers are supported for the `INSERT`, `UPDATE`, and `DELETE` events. The trigger can be "row-level" (it activates for every row the event operates on) or "statement-level" (operates only once per event, i.e. on the "statement"). However, MySQL currently only supports row-level triggers. Triggers are particularly handy for maintaining the integrity of your table as well as running automated tasks.
+
+Most basic validations should be done at the table creation step (for instance `NOT NULL`); however, triggers allows for extended checks. They may increase response time on the server though which should be considered before use.
+
+The general syntax for a trigger is:
+
+```sql
+CREATE TRIGGER trigger_name
+BEFORE/AFTER INSERT/UPDATE/DELETE
+ON table_name FOR EACH ROW
+trigger_body;
+```
+Where `trigger_body` is the action to implement. The table columns are then know to the trigger body as `NEW` and `OLD` versions of the table when appropriate (i.e. the `DELETE` event would not have a `NEW` values for a row). For instance, the column would need to be referenced as `NEW.FirstName` and `OLD.FirstName`.
+
+As an example, say we had a column in a table `LastUpdated`. We could use a trigger on the `UPDATE` event to ensure that the `LastUpdated` column is given the update timestamp when someone changes a value in that row via placing `SET LastUpdated = NOW();` within our trigger body. This could be useful as someone might change a separate field but forget to change the `LastUpdated` column. 
