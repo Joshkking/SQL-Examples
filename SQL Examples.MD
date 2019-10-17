@@ -332,7 +332,7 @@ VALUES (1, 3, '2008-11-01 12:00:00', '2008-12-01', 1),
         (7, 3, '2019-10-03 12:00:00', '2019-11-03', 0),
         (7, 2, '2019-10-02 12:00:00', '2019-11-02', 1),
         (3, 1, '2019-10-09 12:00:00', '2019-11-09', 0),
-        (2, 2, '2019-10-12 12:00:00', '2019-11-12', 0);;
+        (2, 2, '2019-10-12 12:00:00', '2019-11-12', 0);
 ```
 
 ## Basic Data Selection <a name="data_selection"></a>
@@ -343,7 +343,7 @@ The general syntax for retrieving data can be as simple as `SELECT * FROM table_
 
 ```sql
 SELECT Column1, Column2... FROM table_name
-WHERE some_logical_condition
+WHERE some_logical_condition;
 ```
 
 For instance in our fiddle, to select a few columns from our `Customers` table who live in Alabama:
@@ -744,7 +744,7 @@ SELECT
 	b.column_name, ...
 FROM Table_Name AS a
 LEFT/RIGHT/INNER JOIN Table_Name AS b
-ON join_condition...
+ON join_condition...;
 ```
 
 For an example of a self join utilizing hierarchical data, we can look at our books table which has the column `SequelID` which is self-referrential to this table. The value is this column links to the `BookID` of the book which is a sequel of the listed record. In this way, it can be used like a foreign key in a self-join to match up books with their sequels:
