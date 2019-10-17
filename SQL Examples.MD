@@ -39,6 +39,7 @@ This page has all of the below database creation schema already included, so one
   * [GROUP BY and HAVING](#group-by-and-having-)
   * [EXISTS](#exists-)
   * [ANY, ALL](#any-all-)
+  * Window Functions (in progress)
 * [CASE and Other Control Logic](#case-and-other-control-logic-)
 * [Handy Functions](#handy-functions-)
 * [Changing Table Data](#changing-data-and-tables-)
