@@ -8,8 +8,7 @@ https://www.db-fiddle.com/f/7wyqDZguJojJBUNp3kWbEt/6
 This page has all of the below database creation schema already included, so one can copy and paste the queries there to run. The examples provided below are from the context of this schema representing customers checking out different books. The data inserted is random, and the tables are not meant to be great examples. I simply added what I needed to learn the lanugage.
 
 ## Table of Contents
-* [Basic Table Schema](#basic-table-schema-)
-  * Note this section is based, first, on the creation of the fiddle schema and so may not follow an otherwise logical flow.
+* [Basic Table Schema](#basic-table-schema-) - Note this section is based, first, on the creation of the fiddle schema and so may not follow an otherwise logical flow.
   * [Table Creation](#table-creation-)
   * [Data Types](#data-types-)
   * [Altering Tables](#altering-tables-)
