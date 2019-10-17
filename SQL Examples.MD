@@ -879,7 +879,22 @@ WHERE LENGTH(Name) >= ALL(SELECT LENGTH(Name)
 				WHERE Type='fiction');
 ```
 
-## Case <a name="CASE"></a>
+## Case and Other Control Logic <a name="CASE"></a>
+
+SQL supports a number of control logic statements (if-then-else, loops, etc.). For instance, the general syntax for an if-then-else is:
+
+```sql
+IF condition THEN
+   statements;
+ELSEIF elseif-condition THEN
+   elseif-statements;
+ELSE
+   else-statements;
+END IF;
+```
+Note that the above is not the same as the MySQL `IF()` [function](https://www.w3schools.com/sql/func_mysql_if.asp).
+
+These are particularly useful when creating stored procedures (discussed below). However, given the similarity of these control statements to the general structure in other languages, due to the standard presence across dialects of `CASE` and flexibility of use, we'll focus on `CASE` here. For information on other control statements, the [tutorial series starting here](http://www.mysqltutorial.org/mysql-if-statement/) is useful.
 
 `CASE` works like an if-then-else statement, evaluating each record in the returned table and returning results accordingly. It can be used in different commands (such as `SELECT` or `ORDER BY`). Regardless of the use case, the general syntax is:
 
@@ -1003,7 +1018,7 @@ CALL procedure_name();
 ```
 Note the parentheses in the above. As we'll see later, stored procedures can be passed parameters just like a traditional coding function.
 
-If a procedure already exists, it can be modified in the same way it was created but using the `CREATE OR REPLACE PROCEDURE` command instead.
+If a procedure already exists, it can be modified in the same way it was created but using the `CREATE OR REPLACE PROCEDURE` command instead. `SHOW PROCEDURE STATUS;` can be used to get a list of procedures on the server and can take a number of [search cases](http://www.mysqltutorial.org/listing-stored-procedures-in-mysql-database.aspx).
 
 #### Basic Example
 
@@ -1121,4 +1136,24 @@ Note that in the above, we `SELECT` the local variable as part of the stored pro
 
 ### Views <a name="views"></a>
 
-asdfasdf
+Creating a "view" allows you to store a query with a given name, effectively creating a "virtual" table for future use. These have an advantage over stored procedures in that they can function as building blocks of other queries. For instance, on could `SELECT` from a view as, though "virtual", it functions just like a table. The results, however, are live (since it is technically the query logic, rather than the data, which is being stored). One use-case example might be creating a view that is the result of a join between two tables. Views might also be particularly helpful in simplifying the read of complex queries.
+
+The general syntax is simply:
+
+```sql
+CREATE VIEW view_name AS
+...query commands go here... ;
+```
+
+The created view can then be called from a simple query:
+
+```sql
+SELECT * FROM view_name;
+```
+
+Views can be dropped, renamed, and in some cases (though not discussed here) manually updated. To see all the views in a database, we can query the list of all tables, but filter for views;
+
+```sql
+SHOW FULL TABLES 
+WHERE table_type = 'VIEW';
+```
