@@ -910,10 +910,6 @@ FROM Customers;
 
 `CASE` can also be used in `ORDER BY` functions (for instance, *if value is null, order by x, if not, order by y*), within functions, and many other uses. Note that regardless of the location it is used, `CASE` directly returns the value after `THEN` or `ELSE` to that keyword or function. Depending on the situation and SQL dialect, parentheses may need be added around the `CASE` clause for correct evaluation or simply for clarity of syntax.
 
-## Variables <a name="variables"></a>
-
-## Stored Procedures <a name="stored_procedures"></a>
-
 ## Handy Functions <a name="handy_functions"></a>
 
 list of ones I think useful
@@ -965,3 +961,164 @@ We can also **delete** existing data as such:
 DELETE FROM table_name WHERE condition;
 ```
 Just like in the update case, one should be very careful the `WHERE` clause resolves as intended.
+
+## Stored Operations (variables, functions, etc.) <a name="stored_operations"></a>
+
+### Variables <a name="variables"></a>
+
+MySQL does support the utilization of variables, of which there are 3 main types (generally not case-sensitive):
+* **[User-defined "session" variables](https://dev.mysql.com/doc/refman/8.0/en/user-variables.html)** (prefix is `@`) - These variables are session and client-specific. That is, they are not "stored" on the server and only accessible by that user for the duration of the session.
+  * Can be created as so:  `SET @var_name = ...`.
+  * Session variables are not declared and so can be set to a value the moment they are initialized.
+  * Variables are accessed as `@var_name` (that is, you still include the `@` to read them)
+  * Can only take a limited set of datatypes: integer, decimal, floating-point, binary or nonbinary string, or NULL value.
+  * You may see the `:=` operator on these which is needed to set their values inside of other commands (like `SELECT`)
+* **[Local variables](https://dev.mysql.com/doc/refman/8.0/en/declare-local-variable.html)** (no prefix) - These variables are used within stored programs (for instance, a stored procedure or function) and are local to that program.
+  * Can be created as so: `DECLARE var_name var_type DEFAULT value default_value`
+  * The scope of local variables is the `BEGIN ... END` block they reside in.
+* **[System variables](https://dev.mysql.com/doc/refman/5.5/en/using-system-variables.html)** (prefix is `@@`) - These are variables created and stored on the server itself and can be global or dependent on the session.
+ * These are accessed as `@@var_name`
+ * To see the current list of system variable values running on the server, you can use `SHOW VARIABLES;`
+ 
+ ### Stored Procedures <a name="stored_procedures"></a>
+ 
+Stored procedures are stored SQL code that can be saved for later use by calling it's name. The syntax for stored procedures can vary significantly between different dialects, but the basic MySQL syntax looks like:
+
+```sql
+DELIMITER //
+
+CREATE PROCEDURE procedure_name
+BEGIN
+	...sql code goes here...
+END//
+
+DELIMITER ;
+```
+In the above, the general syntax is mostly intuitive, but the use of `DELIMITER` requires some explanation. In the `...sql code goes here...` section, one might input various commands using the standard delimiter `;`. In order to prevent these delimiters from running as normal within the `CREATE PROCEDURE` command, the delimiter is temporarily changed via `DELIMITER` to the value `//`. The delimeter is then changed back to the standard delimiter after the procedure has been created. The delimiter used above `//` is arbirtary and could be other values such as `$$` or `///`.
+
+The stored procedure can then be executed using `CALL` (often "EXECUTE" in other dialects):
+
+```sql
+CALL procedure_name();
+```
+Note the parentheses in the above. As we'll see later, stored procedures can be passed parameters just like a traditional coding function.
+
+If a procedure already exists, it can be modified in the same way it was created but using the `CREATE OR REPLACE PROCEDURE` command instead.
+
+#### Basic Example
+
+Say we wanted a stored procedure that ran the concatenated first and last name of all of our customers. This could be created and called as:
+
+```sql
+DELIMITER //
+CREATE PROCEDURE All_Customer_Names()
+BEGIN
+	SELECT
+    		CONCAT(FirstName,' ',LastName) AS Name
+	FROM Customers;
+END //
+DELIMITER ;
+
+CALL All_Customer_Names();
+```
+
+#### Procedures with Parameters
+
+Stored procedures can take parameter values from the calling program as well as return output values. As such, the parameter types for a stored procedure are:
+* `IN` - A parameter taken in by the stored procedure
+* `OUT` - A parameter returned by the stored procedure to the calling program
+* `INOUT` - A combination of the two above. The stored procedure takes in a paremter, can modify the value of that parameter, and then returns the result
+Parameters are defined within the parenthetical of a stored procedure as `IN/OUT/INOUT parameter_name parameter_datatype`. These only need to be used ad hoc to the situation at hand. The created parameters are referred to by their name only (with no preceding symbols like variable symbols).
+
+For an `IN` example, say we wanted a stored function that return the cusomters table information but filtered down by state:
+
+```sql
+DELIMITER //
+
+CREATE PROCEDURE Customers_From_State(
+	IN state_name VARCHAR(2)
+)
+BEGIN
+	SELECT *
+	FROM Customers
+    WHERE State=state_name;
+END//
+
+DELIMITER ;
+
+CALL Customers_From_State('AL');
+```
+
+For an `OUT` example, say we wanted to ammend the above example to tell us the total in the given state:
+
+```sql
+DELIMITER //
+
+CREATE PROCEDURE Total_From_State(
+	IN state_name VARCHAR(2),
+  	OUT total_count INT
+)
+BEGIN
+	SELECT
+    	COUNT(CustomerID)
+		INTO total_count
+	FROM Customers
+    WHERE State=state_name;
+END //
+
+DELIMITER ;
+
+CALL Total_From_State('AL',@total);
+SELECT(@total);
+```
+Note that in the above, getting the return of the `OUT` parameter requires some steps. We need to give the `OUT` parameter a container to return to, so we note a session variable `@total` in the parameter list (since this is a session variable it can be initialized within the parameter list). We then `SELECT` that parameter to view the value. If we wanted to build the out value into the stored function results directly, we might consider a local variable (discussed below).
+
+For an `INOUT` parameter example, we could imagine creating a procedure to add two numbers. This example is, of course, not useful but serves a basic example of the syntax:
+
+```sql
+DELIMITER //
+
+CREATE PROCEDURE Add_Numbers(
+  INOUT number INT,
+  IN number_to_add INT
+)
+BEGIN
+  SET number = number + number_to_add;
+END//
+
+DELIMITER ;
+
+# Add 1 + 1, returns 2
+SET @number = 1;
+CALL Add_Numbers(@number, 1);
+SELECT @number;
+```
+
+#### Procedures with Local Variables
+
+Procedures can also declare and modify variables local to the procedure itself. These are used within the `BEGIN ... END` section of the procedure and are scoped to that section. Local procedure variables must be declared before they can be set, such as `DECLARE var_name var_type DEFAULT default_value;`. These variables can then be changed via the `SET` command, or one can select values into them as `SELECT ... INTO var_name`.
+
+For instance, say we wanted a stored procedure to return the current customer total directly. In the below example, the local variable is not actually necessary (we could just run the query in the stored procedure to get the same result), but it serves as a simple syntax example. Declaring local variables would be useful or necessary for more complex querries.
+
+```sql
+DELIMITER //
+
+CREATE PROCEDURE Current_Customer_Count()
+BEGIN
+    DECLARE current_count INT DEFAULT 0;
+    
+    SELECT COUNT(CustomerID) INTO current_count
+    FROM Customers;
+    
+    SELECT current_count AS 'Current Customer Total';
+END//
+
+DELIMITER ;
+
+CALL Current_Customer_Count();
+```
+Note that in the above, we `SELECT` the local variable as part of the stored procedure itself. So running this will return the result directly.
+
+### Views <a name="views"></a>
+
+asdfasdf
