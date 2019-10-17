@@ -9,45 +9,52 @@ This page has all of the below database creation schema already included, so one
 
 ## Table of Contents
 * [Basic Table Schema](#basic-table-schema-)
-* []()
-* []()
-* []()
-* []()
-* []()
-* []()
-* []()
-* []()
-* []()
-* []()
-* []()
-* []()
-* []()
-* []()
-* []()
-* []()
-* []()
-* []()
-* []()
-* []()
-* []()
-* []()
-* []()
-* []()
-* []()
-* []()
-* []()
-* []()
-* []()
-* []()
-* []()
-* []()
-* []()
-* []()
-* []()
-* []()
-* []()
+  * Note this section is based, first, on the creation of the fiddle schema and so may not follow an otherwise logical flow.
+  * [Table Creation](#table-creation-)
+  * [Data Types](#data-types-)
+  * [Altering Tables](#altering-tables-)
+  * [CHECK Constraint Example](#check-constraint-example-)
+  * [Foreign Keys and Default Values](#foreign-keys-and-default-values-)
+  * [Naming Constraints and Keys with Multiple Columns](#naming-constraints-or-keys-w-mult-columns-)
+  * [Creating Indexes](#creating-indexes-)
+  * [Inserting Values](#inserting-values-)
+  * [Other Table/Database Commands](#other-noteworthy-tabledatabase-commands-)
+* [Fiddle Schema](#schema-for-fiddle-)
+  * The full table schema and inserted values for the created fiddle can be found here.
+* [Basic Data Selection](#basic-data-selection-)
+  * Note that what I consider "basic" and "advanced" data selection is entirely arbitrary (self-perceived) here.
+  * [General Select Syntax](#general-select-syntax-)
+  * [Only Unique Values](#only-unique-values-)
+  * [Order By](#order-by-)
+  * [Limiting the Number of Results](#limiting-number-of-results-)
+  * [WHERE Examples](#where-examples-)
+  * [String Searches via LIKE](#string-searches-via-like-)
+  * [Working with Nulls](#working-with-nulls-)
+  * [Basic Functions](#basic-functions-)
+  * [Aliases](#aliases-)
+* [Joins](#joins-)
+  * [Inner Joins](#inner-join-)
+  * [Left and Right (Outer) Joins](#left-and-right-outer-joins-)
+  * [Full Outer Joins and Unions](#full-outer-joins-and-unions-)
+  * [Multiple or Logical ON Conditions](#multiple-on-conditions-and-logic-)
+  * [Self Joins](#self-joins-)
+* [Advanced Data Selection]()
+  * [GROUP BY and HAVING](#group-by-and-having-)
+  * [EXISTS](#exists-)
+  * [ANY, ALL](#any-all-)
+* [CASE and Other Control Logic](#case-and-other-control-logic-)
+* [Handy Functions](#handy-functions-)
+* [Changing Table Data](#changing-data-and-tables-)
+* [Catching Duplicates](#catching-duplicates-)
+* [Stored Operations (Variables, Functions, etc.)](#stored-operations-variables-functions-etc-)
+  * [Variables](#variables-)
+  * [Stored Procedures](#stored-procedures-)
+  * [Views](#views-)
+  * [Triggers](#triggers-)
 
 ## Basic Table Schema <a name="table_schema"></a>
+
+Note that the below syntax examples are not presented in perhaps the most oderly logical fashion. This is inentional however, as I'm basically working through the creation of the example fiddle while learning or noting concepts as they come up.
 
 ### Table Creation <a name="table_creation"></a>
 
@@ -240,7 +247,7 @@ Some notes on the above:
 * MySQL doesn't support wildcard for user names, so to grant to all users, leave the username section blank.
 * Can add multiple privileges via commas, like `GRANT SELECT, INSERT ON ...`.
 
-### Schema for Fiddle <a name="fiddle_schema"></a>
+## Schema for Fiddle <a name="fiddle_schema"></a>
 
 The full database schema used in the fiddle, presrved here, can be found below:
 
