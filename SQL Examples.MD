@@ -7,6 +7,8 @@ https://www.db-fiddle.com/f/7wyqDZguJojJBUNp3kWbEt/6
 
 This page has all of the below database creation schema already included, so one can copy and paste the queries there to run. The examples provided below are from the context of this schema representing customers checking out different books. The data inserted is random, and the tables are not meant to be great examples. I simply added what I needed to learn the lanugage.
 
+As a helpful reminder, note that syntax and other helpful information for MySQL can be found via `HELP 'some search string'` where `'some search string'` does stay in quotes and can be things like 'data types' or commands like 'create table'.
+
 ## Table of Contents
 * [Basic Table Schema](#basic-table-schema-) - Note this section is based, first, on the creation of the fiddle schema and so may not follow an otherwise logical flow.
   * [Table Creation](#table-creation-)
@@ -39,7 +41,7 @@ This page has all of the below database creation schema already included, so one
   * [GROUP BY and HAVING](#group-by-and-having-)
   * [EXISTS](#exists-)
   * [ANY, ALL](#any-all-)
-  * Window Functions (in progress)
+  * [Window Functions](#window_functions-)
 * [CASE and Other Control Logic](#case-and-other-control-logic-)
 * [Handy Functions](#handy-functions-)
 * [Changing Table Data](#changing-data-and-tables-)
@@ -48,6 +50,7 @@ This page has all of the below database creation schema already included, so one
   * [Variables](#variables-)
   * [Stored Procedures](#stored-procedures-)
   * [Views](#views-)
+  * [Temporary Tables](#temporary_tables-)
   * [Triggers](#triggers-)
 
 ## Basic Table Schema <a name="table_schema"></a>
@@ -85,6 +88,7 @@ There are a number of different data types that can be used when setting up fiel
 
 * String types:
   * VARCHAR(size) - String of variable length where size in characters can be 0 to 65535
+  * CHAR(size) - String of fixed length (given by size). Useful, for instance, for single-character inputs.
   * TEXT(size) - Holds a string where size in bytes can be up to 65,535 bytes
   * ENUM(val1, val2, ...) - A string object that can only have one values chosen from a list of possible values. If a value is inserted that's not in the list, then a blank is inserted.
   * SET(val2, val2, ...) - Like ENUM but allows for multiple values.
@@ -182,6 +186,15 @@ ON Customers (LastName);
 ```
 
 Multiple columns could have been added to the above, and it could have been converted to a unique index as `UNIQUE INDEX`. Indexes can be dropped.
+
+Alternatively, indexes can be added via the `ALTER TABLE` statement. For instance, the above could have been written as:
+
+```sql
+ALTER TABLE Customers
+ADD INDEX Idx_LastName (LastName);
+```
+
+The two methods are functionally the same, though the `ALTER TABLE` method does not require giving the index a name (the server autogenerates one). An index could also be added directly via `INDEX` as a line during `CREATE TABLE`.
 
 ### Inserting Values <a name="inserting_values"></a>
 
@@ -924,6 +937,32 @@ WHERE LENGTH(Name) >= ALL(SELECT LENGTH(Name)
 				WHERE Type='fiction');
 ```
 
+### Window Functions <a name="window_functions"></a>
+
+Window functions provide aggregate-like information on a set of query rows with the advantage of not having to group the rows in the dataset you want returned. As such, window functions effectively provide the results of a desired group by for each row in a dataset.
+
+The general syntax is to use an aggregate function (such as `COUNT()` or `SUM()`) in the `SELECT` clause along with the `OVER()` function which initiates the statement as a window function. The `OVER()` function function then takes a number of arguments to determine the group by behavior, namely `PARTITION BY` which is similar in behavior to the `GROUP BY` statement. There are other arguments to `OVER()` like ordering and framing, but we'll stick with partitions here for simplicity (see [the docs](https://dev.mysql.com/doc/refman/8.0/en/window-functions-usage.html) for more details).
+
+For an example, consider the case where we wanted information on each book checkout (like the customer and book names from their respective tables), but we also wanted a column telling us the total number of checkouts for each customer as well as the total number of times each book had been checked out. We could get this aggregate information via a group by, but we would then have to collapse the rows in checkouts down, grouped by either the customer or book. We can instead use a window function (in this case, a window function on `COUNT()`) to see that data while still seeing the individual rows in our Checkouts table.
+
+The above query can be performed as:
+
+```sql
+SELECT
+    Checkouts.CheckoutID,
+	Customers.FirstName, Customers.LastName,
+    Books.Name,
+    COUNT(Checkouts.CheckoutID) OVER(
+      PARTITION BY Checkouts.CustomerID) AS 'Total Customer Checkouts',
+    COUNT(Checkouts.CheckoutID) OVER(
+      PARTITION BY Checkouts.BookID) AS 'Total This Book Checked Out'
+FROM Customers
+INNER JOIN Checkouts ON Checkouts.CustomerID=Customers.CustomerID
+INNER JOIN Books ON Books.BookID=Checkouts.BookID
+ORDER BY LastName, FirstName;
+```
+This then returns a joined dataset of the book Checkouts data with the two new columns containing the relevant aggregate data added.
+
 ## Case and Other Control Logic <a name="CASE"></a>
 
 SQL supports a number of control logic statements (if-then-else, loops, etc.). For instance, the general syntax for an if-then-else is:
@@ -1255,6 +1294,12 @@ Views can be dropped, renamed, and in some cases (though not discussed here) man
 SHOW FULL TABLES 
 WHERE table_type = 'VIEW';
 ```
+
+### Temporary Tables <a name="temporary_tables"></a>
+
+MySQL also supports "temporary tables" which, contrasted with views, are only available for the current session. Whereas views are store the query (rather than the data) for a table view, temporary tables store the data itself. A temporary table only lasts for the current session and is only accessible by the user who creates it, but since it is storing data, it may be advantageous over a view in that you could query from the temporary table multiple times without the table needing to be regenerated in time (since the actual data itself is stored). You can then insert values into a temporary table just as if it were a real one.
+
+Temporary tables can be created view the `CREATE TEMPORARY TABLE` command, after which can follow the same syntax for normal creation, or a query to take data and structure from an existing table.
 
 ### Triggers <a name="triggers"></a>
 
