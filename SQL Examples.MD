@@ -41,7 +41,7 @@ As a helpful reminder, note that syntax and other helpful information for MySQL 
   * [GROUP BY and HAVING](#group-by-and-having-)
   * [EXISTS](#exists-)
   * [ANY, ALL](#any-all-)
-  * [Window Functions](#window_functions-)
+  * [Window Functions](#window_functions)
 * [CASE and Other Control Logic](#case-and-other-control-logic-)
 * [Handy Functions](#handy-functions-)
 * [Changing Table Data](#changing-data-and-tables-)
@@ -50,7 +50,7 @@ As a helpful reminder, note that syntax and other helpful information for MySQL 
   * [Variables](#variables-)
   * [Stored Procedures](#stored-procedures-)
   * [Views](#views-)
-  * [Temporary Tables](#temporary_tables-)
+  * [Temporary Tables](#temporary_tables)
   * [Triggers](#triggers-)
 
 ## Basic Table Schema <a name="table_schema"></a>
