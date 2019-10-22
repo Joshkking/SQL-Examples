@@ -983,6 +983,7 @@ Below is a list of handy functions just for reference. It is by no means exhaust
 * ROUND()
 * STD()
 * RAND() - to generate a random number
+* FORMAT(num,dec) - Formats a number `num`, to have `dec` number of decimal places via rounding
 * CONCAT() - for joining strings together
 * CURDATE()
 * NOW() - timestamp
