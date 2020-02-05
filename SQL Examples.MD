@@ -1,6 +1,6 @@
 # SQL Examples
 
-The following are some basic SQL Examples and notes taken during my Masters working in the MySQL dialect. Since, to me, much of the meaning of any give SQL syntax can be interpretted from the code itself, I'm not attempting to explain as much as provide self-interpretable examples, giving notes when necessary. I also don't intend to hit every function on its own but rather eventually cover most important examples along the way. Also this generally assume basic knowledge of terms and more serves as a set of syntax examples.
+The following are some basic SQL Examples and notes taken during my Masters working in the MySQL dialect. Since, to me, much of the meaning of any give SQL syntax can be interpretted from the code itself, I'm not attempting to explain as much as provide self-interpretable examples, giving notes when necessary. I also don't intend to hit every function on its own but rather eventually cover most important examples along the way. Also this generally assumes basic knowledge of terms and more serves as a set of syntax examples.
 
 To practice the queries, I have been working with a db-fiddle page:
 https://www.db-fiddle.com/f/7wyqDZguJojJBUNp3kWbEt/6
